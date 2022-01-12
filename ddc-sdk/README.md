@@ -84,7 +84,7 @@ The SDK contains the following methods that the platform can call：
 
 ### Requirements
 
-   **Java 1.8 or later**
+-   **Java 1.8 or later**
 
 
 
