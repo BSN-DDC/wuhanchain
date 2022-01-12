@@ -1,4 +1,4 @@
-本SDK中包含平台方可调用的如下方法：
+The SDK contains the following methods that the platform can call：
 ```
 
 3.2.1BSN-DDC-权限管理
