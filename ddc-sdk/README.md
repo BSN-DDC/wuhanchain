@@ -80,21 +80,17 @@
 
 ```
 
-### 要求
+### Requirements
 
-**Java 1.8 或 更高**
+   **Java 1.8 or later**
 
 
 
-### Maven 依赖
+### Maven users
 
-使用SDK，添加以下依赖jar包。
+Add this dependency to your project's POM:
 
 ```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
 <dependency>
     <groupId>com.reddate.ddc</groupId>
     <artifactId>ddc-sdk-wuhan</artifactId>
@@ -118,9 +114,11 @@
 </dependency>
 ```
 
+## Documentation
 
+Gateway Access Instructions：[BSN Gateway](https://bsnbase.com/static/tmpFile/bzsc/openper/7-3-3.html)
 
-
+Contract development information：[ETH Developers Docs](https://ethereum.org/zh/developers/docs/)
 
 ## Usage
 
@@ -159,7 +157,7 @@ public class SdkExampleTest {
     }
 
     /**
-     *  Mint
+     * DDC mint
      * @throws Exception
      */
     @Test
@@ -169,7 +167,7 @@ public class SdkExampleTest {
     }
 
     /**
-     * Mint By Options
+     * DDC min by options
      * @throws Exception
      */
     @Test
@@ -183,7 +181,7 @@ public class SdkExampleTest {
     }
 
     /**
-     * Create account
+     * create account
      */
     @Test
     void createAccount() {
@@ -198,35 +196,35 @@ public class SdkExampleTest {
 
 ### Configuration
 
-请参考：src/main/resources/contractConfig.json
+Please refer to：src/main/resources/contractConfig.json
+
+gasPrice,gasLimit,Nullable. It is recommended to configure to reduce the number of requests to the gateway.
 
 ```
 {
-    "gateWayUrl":"",//网关地址
+    "gateWayUrl":"",//gateWay Url
     "gasPrice":"",// gasPrice
     "gasLimit":"",// gasLimit
     "contracts":[
         {
-            "configType":"721",//分别对应的合约： 721、1155、charge、authority
-            "contractAbi":"",//合约abi
-            "contractBytecode":"",//合约byteCode
-            "contractAddress":"",//合约地址
-            "signUserAddress":""// 签名用户地址
+            "configType":"721",//corresponding contracts： 721、1155、charge、authority
+            "contractAbi":"",//contract ABI
+            "contractBytecode":"",//contract Bytecode
+            "contractAddress":"",//contract address
+            "signUserAddress":""//signed user
         },
         ...
     ]
 }
 ```
 
-gasPrice,gasLimit,可空。建议配置，减少请求网关次数。
 
-该配置文件默认**全局有效**，如有特殊配置请参考以下示例。
 
 
 
 ### Per-request Configuration
 
-所有请求方法都接受可选的'RequestOptions'对象，如有特殊配置请求信息请使用此对象。
+All of the request methods accept an optional `RequestOptions` object. This is used if you want to set the gateway address etc.
 
 ```java
 RequestOptions requestOptions = RequestOptions.builder()
@@ -241,7 +239,7 @@ sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcU
 
 ### Configure the （ethGetTransactionCount）nonce value
 
-nonce 默认值根据配置文件中的：signUserAddress 从网关获取，如果调用频繁建议本地维护。
+The default value of nonce is obtained from the gateway according to: signUserAddress in the configuration file. If calling frequently recommends local maintenance, use RequestOptions to pass this parameter.
 
 ```
 RequestOptions requestOptions = RequestOptions.builder().build();
@@ -254,7 +252,13 @@ sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcU
 
 ### Configuring automatic retries
 
-配置网络错误请求重试次数，该配置单次请求有效。
+Automatic retriescan be configured globally:
+
+```
+DDCWuhan.setMaxNetworkRetries(5);
+```
+
+Or on a finer grain level using `RequestOptions`:
 
 ```java
 RequestOptions requestOptions = RequestOptions.builder()
@@ -266,19 +270,19 @@ RequestOptions requestOptions = RequestOptions.builder()
 
 ### Configuring Timeouts
 
-配置超时时间。
+Connect and read timeouts can be configured globally:
 
-```java
+```
+DDCWuhan.setConnectTimeout(10 * 1000); // in milliseconds
+DDCWuhan.setReadTimeout(10 * 1000);
+```
+
+Or on a finer grain level using `RequestOptions`:
+
+```
 RequestOptions requestOptions = RequestOptions.builder()
-    .setReadTimeout(1000 * 3) // in milliseconds
-    .setConnectTimeout(100)
+    .setReadTimeout(10 * 1000) // in milliseconds
+    .setConnectTimeout(10 * 1000)
     .build();
-```
-
-Default Configure：
-
-```
-public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
-public static final int DEFAULT_READ_TIMEOUT = 80 * 1000;
 ```
 
