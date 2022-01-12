@@ -1,13 +1,22 @@
 package com.reddate.ddc.util.http;
 
+import com.reddate.ddc.constant.ErrorMessage;
+import com.reddate.ddc.exception.DDCException;
+import com.reddate.ddc.net.DDCWuhan;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
+@Slf4j
 public class RestTemplateConfig {
 
     public RestTemplate restTemplate(ClientHttpRequestFactory factory) {
@@ -25,6 +34,16 @@ public class RestTemplateConfig {
 
             @Override
             public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+                HttpStatus statusCode = clientHttpResponse.getStatusCode();
+                if (!statusCode.is2xxSuccessful()) {
+                    String result = clientHttpResponse.getStatusText();
+                    log.error("statuCode:{}, statuText:{}, header:{}, body:{}",
+                            clientHttpResponse.getStatusCode(),
+                            clientHttpResponse.getStatusText(),
+                            clientHttpResponse.getHeaders(),
+                            convertStreamToString(clientHttpResponse.getBody()));
+                    throw new DDCException(ErrorMessage.REQUEST_FAILED.getCode(),result);
+                }
             }
         };
         restTemplate.setErrorHandler(responseErrorHandler);
@@ -32,11 +51,32 @@ public class RestTemplateConfig {
         return restTemplate;
     }
 
-
-    public ClientHttpRequestFactory simpleClientHttpRequestFactory(int timeout,int readTimeout) {
+    public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(timeout);
-        factory.setReadTimeout(readTimeout);
+        factory.setConnectTimeout(DDCWuhan.getConnectTimeout());
+        factory.setReadTimeout(DDCWuhan.getReadTimeout());
         return factory;
+    }
+
+    private String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return sb.toString();
     }
 }

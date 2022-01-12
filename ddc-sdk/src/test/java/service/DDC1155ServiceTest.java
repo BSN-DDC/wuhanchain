@@ -27,7 +27,7 @@ class DDC1155ServiceTest {
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
 
     private String transactionSignature(RawTransaction transaction) {
-        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e3891691cbe4f";
+        String privateKey = "0x82ab01647229a2179307bc47bb030fc55b6f69a45167644173602641f1967d93";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         String HexSignature = Numeric.toHexString(signedMessage);
@@ -37,6 +37,7 @@ class DDC1155ServiceTest {
 
     @Test
     void mint() throws Exception {
+
         byte[] data = new byte[1];
         data[0] = 1;
         String tx = ddcSdkClient.ddc1155Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3306066", BigInteger.TEN, "Token-R888-5-1-111", data);

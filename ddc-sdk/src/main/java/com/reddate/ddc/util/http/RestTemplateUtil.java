@@ -16,9 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.reddate.ddc.net.AbstractDDC.DEFAULT_CONNECT_TIMEOUT;
-import static com.reddate.ddc.net.AbstractDDC.DEFAULT_READ_TIMEOUT;
-
 @Slf4j
 public class RestTemplateUtil {
 
@@ -26,7 +23,7 @@ public class RestTemplateUtil {
 
     public RestTemplateUtil() {
         RestTemplateConfig restTemplateConfig = new RestTemplateConfig();
-        restTemplate = restTemplateConfig.restTemplate(restTemplateConfig.simpleClientHttpRequestFactory(DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT));
+        restTemplate = restTemplateConfig.restTemplate(restTemplateConfig.simpleClientHttpRequestFactory());
     }
 
     public static <T> T sendPost(String url, Object params, Class<T> t) throws RestClientException {

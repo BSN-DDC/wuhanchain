@@ -22,7 +22,7 @@ public class ChargeServiceTest {
     DDCSdkClient  service =new DDCSdkClient();//.instance("src/main/resources/contractConfig.json", signEventListener);
 
     private static String transactionSignature(RawTransaction transaction) {
-        String privateKey = "583b92bc8b210a639f07daac25b4631560d0907b4706ff5abfe0c363ffb3b424";
+        String privateKey = "0x82ab01647229a2179307bc47bb030fc55b6f69a45167644173602641f1967d93";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);

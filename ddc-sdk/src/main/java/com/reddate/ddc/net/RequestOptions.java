@@ -60,9 +60,9 @@ public class RequestOptions {
                 null,
                 gatewayConfig.getGasPrice(),
                 gatewayConfig.getGasLimit(),
-                AbstractDDC.getConnectTimeout(),
-                AbstractDDC.getReadTimeout(),
-                AbstractDDC.getMaxNetworkRetries(),
+                DDCWuhan.getConnectTimeout(),
+                DDCWuhan.getReadTimeout(),
+                DDCWuhan.getMaxNetworkRetries(),
                 null);
     }
 
@@ -75,9 +75,9 @@ public class RequestOptions {
                 null,
                 BaseService.gatewayConfig.getGasPrice(),
                 BaseService.gatewayConfig.getGasLimit(),
-                AbstractDDC.getConnectTimeout(),
-                AbstractDDC.getReadTimeout(),
-                AbstractDDC.getMaxNetworkRetries(),
+                DDCWuhan.getConnectTimeout(),
+                DDCWuhan.getReadTimeout(),
+                DDCWuhan.getMaxNetworkRetries(),
                 null);
     }
 
@@ -184,9 +184,9 @@ public class RequestOptions {
             this.contractAddress = ddcContractConfig.getContractAddress();
             this.gasPrice = gatewayConfig.getGasPrice();
             this.gasLimit = gatewayConfig.getGasLimit();
-            this.connectTimeout = AbstractDDC.DEFAULT_CONNECT_TIMEOUT;
-            this.readTimeout = AbstractDDC.getReadTimeout();
-            this.networkRetries = AbstractDDC.getMaxNetworkRetries();
+            this.connectTimeout = DDCWuhan.getConnectTimeout();
+            this.readTimeout = DDCWuhan.getReadTimeout();
+            this.networkRetries = DDCWuhan.getMaxNetworkRetries();
             this.signEventListener = signEventListener;
         }
 
@@ -198,9 +198,9 @@ public class RequestOptions {
             this.contractAddress = null;
             this.gasPrice = null;
             this.gasLimit = null;
-            this.connectTimeout = AbstractDDC.getConnectTimeout();
-            this.readTimeout = AbstractDDC.getReadTimeout();
-            this.networkRetries = AbstractDDC.getMaxNetworkRetries();
+            this.connectTimeout = DDCWuhan.getConnectTimeout();
+            this.readTimeout = DDCWuhan.getReadTimeout();
+            this.networkRetries = DDCWuhan.getMaxNetworkRetries();
             this.signEventListener = null;
         }
 
