@@ -105,14 +105,14 @@ Add this dependency to your project's POM:
     <artifactId>web3sdk</artifactId>
     <version>2.4.0.0601-bsn</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/libs/web3sdk.jar</systemPath>
+    <systemPath>${project.basedir}/lib/web3sdk.jar</systemPath>
 </dependency>
 <dependency>
     <groupId>org.fisco.solc</groupId>
     <artifactId>solcJ</artifactId>
     <version>0.6.10.0</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/libs/solcJ-0.6.10.0.jar</systemPath>
+    <systemPath>${project.basedir}/lib/solcJ-0.6.10.0.jar</systemPath>
 </dependency>
 ```
 
