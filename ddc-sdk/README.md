@@ -100,19 +100,21 @@ Add this dependency to your project's POM:
     <scope>system</scope>
     <systemPath>${project.basedir}/lib/ddc-sdk-Wuhan.jar</systemPath>
 </dependency>
+
 <dependency>
-<groupId>org.fisco-bcos</groupId>
-<artifactId>web3sdk</artifactId>
-<version>2.4.0.0601-bsn</version>
-<scope>system</scope>
-<systemPath>${project.basedir}/lib/web3sdk.jar</systemPath>
+    <groupId>org.fisco.bcos</groupId>
+    <artifactId>web3sdk</artifactId>
+    <version>2.4.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/web3sdk.jar</systemPath>
 </dependency>
+
 <dependency>
-<groupId>org.fisco.solc</groupId>
-<artifactId>solcJ</artifactId>
-<version>0.6.10.0</version>
-<scope>system</scope>
-<systemPath>${project.basedir}/lib/solcJ-0.6.10.0.jar</systemPath>
+    <groupId>org.fisco.solc</groupId>
+    <artifactId>solcJ</artifactId>
+    <version>0.6.10.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/solcJ-0.6.10.0.jar</systemPath>
 </dependency>
 ```
 
