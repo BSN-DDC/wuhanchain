@@ -9,10 +9,29 @@ public abstract class DDCWuhan {
     public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
     public static final int DEFAULT_READ_TIMEOUT = 80 * 1000;
 
+    private static volatile String gatewayApiKey = null;
     private static volatile int connectTimeout = -1;
     private static volatile int readTimeout = -1;
-
     private static volatile int maxNetworkRetries = 0;
+
+    /**
+     * Returns the gateway headers api-key
+     *
+     * @return api-key
+     */
+    public static String getGatewayApiKey() {
+        return gatewayApiKey;
+    }
+
+    /**
+     * If key is enabled, this value needs to be set
+     *
+     * @param  apiKey
+     */
+    public static void setGatewayApiKey(final String apiKey) {
+        gatewayApiKey = apiKey;
+    }
+
 
     /**
      * Returns the connection timeout.
@@ -25,6 +44,7 @@ public abstract class DDCWuhan {
         }
         return connectTimeout;
     }
+
     /**
      * Sets the timeout value that will be used for making new connections to the Stripe API (in
      * milliseconds).

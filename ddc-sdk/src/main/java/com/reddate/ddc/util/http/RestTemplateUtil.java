@@ -1,6 +1,7 @@
 package com.reddate.ddc.util.http;
 
 import com.alibaba.fastjson.JSONObject;
+import com.reddate.ddc.net.DDCWuhan;
 import com.reddate.ddc.net.RequestOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.core.internal.Function;
@@ -10,6 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.web3j.utils.Strings;
 
 import java.util.Map;
 import java.util.Objects;
@@ -92,6 +94,10 @@ public class RestTemplateUtil {
     public static <T> T sendPost(Object params, Class<T> t, RequestOptions options) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        String apiKey = DDCWuhan.getGatewayApiKey();
+        if (!Strings.isEmpty(apiKey)) {
+            headers.add("x-api-key", apiKey);
+        }
         HttpEntity entity = new HttpEntity<>(params, headers);
 
         String url = options.getGateWayUrl();

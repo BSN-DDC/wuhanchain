@@ -14,5 +14,5 @@ public class ReChargeEventBean extends BaseEventBean {
     String to;
     
     /** 业务费 */
-    BigInteger value;
+    BigInteger amount;
 }

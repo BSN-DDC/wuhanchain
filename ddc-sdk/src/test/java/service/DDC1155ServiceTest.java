@@ -22,37 +22,45 @@ import static org.junit.Assert.assertNotNull;
 @Slf4j
 class DDC1155ServiceTest {
 
-    SignEventListener signEventListener = event -> transactionSignature(event.getRawTransaction());
+    // sign event listener
+    SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
+    // ddcSdkClient instantiation
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
 
-    private String transactionSignature(RawTransaction transaction) {
-        String privateKey = "0x82ab01647229a2179307bc47bb030fc55b6f69a45167644173602641f1967d93";
+    //  The address the transaction is send from.
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3306066";
+
+    private static String transactionSignature(String sender, RawTransaction transaction) {
+        // sender: Obtain the private key according to the sender and complete its signature
+
+        //sender privateKey
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
-        String HexSignature = Numeric.toHexString(signedMessage);
-        return HexSignature;
+        return Numeric.toHexString(signedMessage);
     }
 
 
     @Test
-    void mint() throws Exception {
-
+    void safeMint() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = ddcSdkClient.ddc1155Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3306066", BigInteger.TEN, "Token-R888-5-1-111", data);
+        String tx = ddcSdkClient.ddc1155Service.safeMint(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", BigInteger.TEN, "Token-R88821", data);
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
-    void mintBatch() throws Exception {
+    void safeMintBatch() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
         Multimap<BigInteger, String> map = ArrayListMultimap.create();
-        map.put(new BigInteger("10"), "ddc-1");
-        map.put(new BigInteger("20"), "ddc-2");
-        String tx = ddcSdkClient.ddc1155Service.mintBatch("0x9d37d92d3bca605a49f21642c309e578b16040fd", map, data);
+        map.put(new BigInteger("11"), "11");
+        map.put(new BigInteger("22"), "12");
+
+
+        String tx = ddcSdkClient.ddc1155Service.safeMintBatch(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", map, data);
         log.info(tx);
         assertNotNull(tx);
     }
@@ -60,7 +68,7 @@ class DDC1155ServiceTest {
 
     @Test
     void setApprovalForAll() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.setApprovalForAll("0x4655399c9c082304fe7a0af145c490f52d87d732", true);
+        String tx = ddcSdkClient.ddc1155Service.setApprovalForAll(sender, "0x4655399c9c082304fe7a0af145c490f52d87d732", true);
         log.info(tx);
         assertNotNull(tx);
 
@@ -77,7 +85,7 @@ class DDC1155ServiceTest {
     void safeTransferFrom() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = ddcSdkClient.ddc1155Service.safeTransferFrom("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", new BigInteger("8"), new BigInteger("1"), data);
+        String tx = ddcSdkClient.ddc1155Service.safeTransferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", new BigInteger("8"), new BigInteger("1"), data);
         log.info(tx);
         assertNotNull(tx);
     }
@@ -92,29 +100,28 @@ class DDC1155ServiceTest {
 
         Map<BigInteger, BigInteger> ddcInfos = new HashMap<>();
         ddcInfos.put(new BigInteger("7"), new BigInteger("1"));
-        String tx = ddcSdkClient.ddc1155Service.safeBatchTransferFrom("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", ddcInfos, datas);
+        String tx = ddcSdkClient.ddc1155Service.safeBatchTransferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", ddcInfos, datas);
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void freeze() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.freeze(new BigInteger("7"));
+        String tx = ddcSdkClient.ddc1155Service.freeze(sender, new BigInteger("7"));
         log.info(tx);
         assertNotNull(tx);
     }
 
-
     @Test
     void unFreeze() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.unFreeze(new BigInteger("7"));
+        String tx = ddcSdkClient.ddc1155Service.unFreeze(sender, new BigInteger("7"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void burn() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.burn("0x24a95d34dcbc74f714031a70b077e0abb3306066", new BigInteger("203"));
+        String tx = ddcSdkClient.ddc1155Service.burn(sender, "0x24a95d34dcbc74f714031a70b077e0abb3306066", new BigInteger("203"));
         log.info(tx);
         assertNotNull(tx);
     }
@@ -125,7 +132,7 @@ class DDC1155ServiceTest {
         arrayList.add(new BigInteger("6"));
         arrayList.add(new BigInteger("7"));
 
-        String tx = ddcSdkClient.ddc1155Service.burnBatch("0x019ba4600e117f06e3726c0b100a2f10ec52339e", arrayList);
+        String tx = ddcSdkClient.ddc1155Service.burnBatch(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", arrayList);
         log.info(tx);
         assertNotNull(tx);
     }

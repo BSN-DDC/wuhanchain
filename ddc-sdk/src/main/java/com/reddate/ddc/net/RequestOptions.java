@@ -20,7 +20,6 @@ import java.util.Objects;
 @EqualsAndHashCode(callSuper = false)
 public class RequestOptions {
     private final String gateWayUrl;
-    private final String userAddress;
     private final String contractAbi;
     private final String contractBytecode;
     private final String contractAddress;
@@ -37,9 +36,8 @@ public class RequestOptions {
 
     private BigInteger nonce;
 
-    public RequestOptions(String gateWayUrl, String userAddress, String contractAbi, String contractBytecode, String contractAddress, BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int readTimeout, int networkRetries, SignEventListener signEventListener) {
+    public RequestOptions(String gateWayUrl, String contractAbi, String contractBytecode, String contractAddress, BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int readTimeout, int networkRetries, SignEventListener signEventListener) {
         this.gateWayUrl = gateWayUrl;
-        this.userAddress = userAddress;
         this.contractAbi = contractAbi;
         this.contractBytecode = contractBytecode;
         this.contractAddress = contractAddress;
@@ -57,7 +55,6 @@ public class RequestOptions {
                 null,
                 null,
                 null,
-                null,
                 gatewayConfig.getGasPrice(),
                 gatewayConfig.getGasLimit(),
                 DDCWuhan.getConnectTimeout(),
@@ -72,7 +69,6 @@ public class RequestOptions {
                 null,
                 null,
                 null,
-                null,
                 BaseService.gatewayConfig.getGasPrice(),
                 BaseService.gatewayConfig.getGasLimit(),
                 DDCWuhan.getConnectTimeout(),
@@ -83,10 +79,6 @@ public class RequestOptions {
 
     public String getGateWayUrl() {
         return gateWayUrl;
-    }
-
-    public String getUserAddress() {
-        return userAddress;
     }
 
     public String getContractAbi() {
@@ -117,6 +109,7 @@ public class RequestOptions {
     public BigInteger getNonce() {
         return nonce;
     }
+
     public void setNonce(BigInteger nonce) {
         this.nonce = nonce;
     }
@@ -134,6 +127,9 @@ public class RequestOptions {
     }
 
     public static <T> RequestOptionsBuilder builder(T t) {
+        if (!t.equals(DDC721Service.class) && !t.equals(DDC1155Service.class) && !t.equals(ChargeService.class) && !t.equals(AuthorityService.class)) {
+            throw new DDCException(ErrorMessage.REQUEST_OPTIONS_BUILDER_FAILED);
+        }
         if (t.equals(DDC721Service.class)) {
             requestSignEventListener = DDC721Service.signEventListener;
             ddcContractConfig = DDC721Service.ddcContract;
@@ -154,18 +150,12 @@ public class RequestOptions {
         return new RequestOptionsBuilder(ddcContractConfig, gatewayConfig, requestSignEventListener);
     }
 
-    public static <T> RequestOptionsBuilder builder() {
-        return new RequestOptionsBuilder();
-    }
-
     public static final class RequestOptionsBuilder {
 
         private String gateWayUrl;
-        private String userAddress;
         private String contractAbi;
         private String contractBytecode;
         private String contractAddress;
-        private String privateKey;
         private BigInteger gasPrice;
         private BigInteger gasLimit;
         private int connectTimeout;
@@ -178,7 +168,6 @@ public class RequestOptions {
                 throw new DDCException(ErrorMessage.REQUEST_OPTIONS_INIT_FAILED);
             }
             this.gateWayUrl = gatewayConfig.getGateWayUrl();
-            this.userAddress = ddcContractConfig.getSignUserAddress();
             this.contractAbi = ddcContractConfig.getContractAbi();
             this.contractBytecode = ddcContractConfig.getContractBytecode();
             this.contractAddress = ddcContractConfig.getContractAddress();
@@ -192,7 +181,6 @@ public class RequestOptions {
 
         public RequestOptionsBuilder() {
             this.gateWayUrl = null;
-            this.userAddress = null;
             this.contractAbi = null;
             this.contractBytecode = null;
             this.contractAddress = null;
@@ -259,7 +247,6 @@ public class RequestOptions {
         public RequestOptions build() {
             return new RequestOptions(
                     this.gateWayUrl,
-                    this.userAddress,
                     this.contractAbi,
                     this.contractBytecode,
                     this.contractAddress,

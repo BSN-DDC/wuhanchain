@@ -1,8 +1,8 @@
 # wuhanchain java client library
 
 The SDK contains the following methods that the platform can call：
-```
 
+```
 3.2.1BSN-DDC-权限管理
     3.2.1.1查询账户
     3.2.1.2更新账户状态
@@ -98,21 +98,21 @@ Add this dependency to your project's POM:
     <artifactId>ddc-sdk-wuhan</artifactId>
     <version>0.0.1</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/libs/ddc-sdk-Wuhan.jar</systemPath>
+    <systemPath>${project.basedir}/lib/ddc-sdk-Wuhan.jar</systemPath>
 </dependency>
 <dependency>
-    <groupId>org.fisco-bcos</groupId>
-    <artifactId>web3sdk</artifactId>
-    <version>2.4.0.0601-bsn</version>
-    <scope>system</scope>
-    <systemPath>${project.basedir}/libs/web3sdk.jar</systemPath>
+<groupId>org.fisco-bcos</groupId>
+<artifactId>web3sdk</artifactId>
+<version>2.4.0.0601-bsn</version>
+<scope>system</scope>
+<systemPath>${project.basedir}/lib/web3sdk.jar</systemPath>
 </dependency>
 <dependency>
-    <groupId>org.fisco.solc</groupId>
-    <artifactId>solcJ</artifactId>
-    <version>0.6.10.0</version>
-    <scope>system</scope>
-    <systemPath>${project.basedir}/libs/solcJ-0.6.10.0.jar</systemPath>
+<groupId>org.fisco.solc</groupId>
+<artifactId>solcJ</artifactId>
+<version>0.6.10.0</version>
+<scope>system</scope>
+<systemPath>${project.basedir}/lib/solcJ-0.6.10.0.jar</systemPath>
 </dependency>
 ```
 
@@ -147,12 +147,20 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SdkExampleTest {
 
-    SignEventListener signEventListener = event -> transactionSignature(event.getRawTransaction());
+    // sign event listener
+    SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
-    DDCSdkClient  sdkClient = DDCSdkClient.instance("src/main/resources/contractConfig.json", signEventListener);
+    // ddcSdkClient instantiation
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
 
-    private static String transactionSignature(RawTransaction transaction) {
-        String privateKey = "0x2050cadaf97df6c99c************";
+    //  The address the transaction is send from.
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
+
+    private static String transactionSignature(String sender, RawTransaction transaction) {
+        // sender: Obtain the privateKey according to the sender and complete its signature
+
+        //sender privateKey
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -169,7 +177,7 @@ public class SdkExampleTest {
     }
 
     /**
-     * DDC min by options
+     * DDC mint by options
      * @throws Exception
      */
     @Test
@@ -212,15 +220,12 @@ gasPrice,gasLimit,Nullable. It is recommended to configure to reduce the number 
             "configType":"721",//corresponding contracts： 721、1155、charge、authority
             "contractAbi":"",//contract ABI
             "contractBytecode":"",//contract Bytecode
-            "contractAddress":"",//contract address
-            "signUserAddress":""//signed user
+            "contractAddress":""//contract address
         },
         ...
     ]
 }
 ```
-
-
 
 
 
@@ -230,24 +235,21 @@ All of the request methods accept an optional `RequestOptions` object. This is u
 
 ```java
 RequestOptions requestOptions = RequestOptions.builder()
-    .setGateWayUrl("http://********/rpc")
-    .setGasLimit("1000000")
-    .build();
+        .setGateWayUrl("http://********/rpc")
+        .setGasLimit("1000000")
+        .build();
 
-sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",options);
+        sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",options);
 ```
 
 
 
-### Configure the （ethGetTransactionCount）nonce value
+### Configure gateway x-api-key
 
-The default value of nonce is obtained from the gateway according to: signUserAddress in the configuration file. If calling frequently recommends local maintenance, use RequestOptions to pass this parameter.
+If you enable the project key in the BSN portal, it needs to be configured in the sdk,This configuration takes effect globally.
 
 ```
-RequestOptions requestOptions = RequestOptions.builder().build();
-requestOptions.setNonce("2");
-
-sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",requestOptions);
+DDCWuhan.setGatewayApiKey("d8438f145351511503f572d632");
 ```
 
 
@@ -264,8 +266,8 @@ Or on a finer grain level using `RequestOptions`:
 
 ```java
 RequestOptions requestOptions = RequestOptions.builder()
-    .setNetworkRetries(2)
-    .build();
+        .setNetworkRetries(2)
+        .build();
 ```
 
 
@@ -286,5 +288,18 @@ RequestOptions requestOptions = RequestOptions.builder()
     .setReadTimeout(10 * 1000) // in milliseconds
     .setConnectTimeout(10 * 1000)
     .build();
+```
+
+
+
+### Configure the （ethGetTransactionCount）nonce value
+
+The default value of nonce is obtained from the gateway according to: signUserAddress in the configuration file. If calling frequently recommends local maintenance, use RequestOptions to pass this parameter.
+
+```
+RequestOptions requestOptions = RequestOptions.builder().build();
+requestOptions.setNonce("2");
+
+sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",requestOptions);
 ```
 

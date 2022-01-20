@@ -6,11 +6,8 @@ import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.RequestOptions;
-import com.reddate.ddc.util.HexUtils;
 import org.fisco.bcos.web3j.abi.datatypes.Address;
-import org.fisco.bcos.web3j.crypto.WalletUtils;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
-import org.fisco.bcos.web3j.utils.Strings;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -31,29 +28,28 @@ public class ChargeService extends BaseService {
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String recharge(String to, BigInteger amount) throws Exception {
-        return recharge(to, amount, RequestOptions.builder(ChargeService.class).build());
+    public String recharge(String sender, String to, BigInteger amount) throws Exception {
+        return recharge(sender, to, amount, RequestOptions.builder(ChargeService.class).build());
     }
 
     /**
      * 运营方、平台方调用该接口为所属同一方的同一级别账户或者下级账户充值；
      *
+     * @param sender
      * @param to      充值账户的地址
      * @param amount  充值金额
      * @param options configuration
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String recharge(String to, BigInteger amount, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
+    public String recharge(String sender, String to, BigInteger amount, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
 
-        if (!WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check to
+        checkTo(to);
 
-        if (amount == null || BigInteger.ZERO.compareTo(amount) >= 0) {
+        if (null == amount || BigInteger.ZERO.compareTo(amount) >= 0) {
             throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
         }
 
@@ -63,7 +59,7 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, ChargeFunctions.RECHARGE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.RECHARGE);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -87,13 +83,10 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String accAddr, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(accAddr)) {
-            throw new DDCException(ErrorMessage.ACC_ADDR_IS_EMPTY);
-        }
 
-        if (!WalletUtils.isValidAddress(accAddr)) {
-            throw new DDCException(ErrorMessage.ACC_ADDR_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check accAddr
+        checkAccAddr(accAddr);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(new Address(accAddr));
@@ -126,21 +119,12 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger queryFee(String ddcAddr, String sig, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
-        }
 
-        if (!WalletUtils.isValidAddress(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check ddc contract address
+        checkDdcAddr(ddcAddr);
 
-        if (Strings.isEmpty(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_EMPTY);
-        }
-
-        if (!HexUtils.isValid4ByteHash(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_NOT_4BYTE_HASH);
-        }
+        // check sig
+        checkSig(sig);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -156,24 +140,29 @@ public class ChargeService extends BaseService {
     /**
      * 运营方调用为自己的账户增加业务费。
      *
+     * @param sender
      * @param amount 对运营方账户进行充值的业务费
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String selfRecharge(BigInteger amount) throws Exception {
-        return selfRecharge(amount, RequestOptions.builder(ChargeService.class).build());
+    public String selfRecharge(String sender, BigInteger amount) throws Exception {
+        return selfRecharge(sender, amount, RequestOptions.builder(ChargeService.class).build());
     }
 
     /**
      * 运营方调用为自己的账户增加业务费。
      *
+     * @param sender
      * @param amount  对运营方账户进行充值的业务费
      * @param options configuration
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String selfRecharge(BigInteger amount, RequestOptions options) throws Exception {
-        if (amount == null ||  BigInteger.ZERO.compareTo(amount) >= 0) {
+    public String selfRecharge(String sender, BigInteger amount, RequestOptions options) throws Exception {
+
+        // check sender
+        checkSender(sender);
+        if (amount == null || BigInteger.ZERO.compareTo(amount) >= 0) {
             throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
         }
 
@@ -181,26 +170,28 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, ChargeFunctions.SELF_RECHARGE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SELF_RECHARGE);
         return (String) respJsonRpcBean.getResult();
     }
 
     /**
      * 运营方调用接口设置指定的DDC主合约的方法调用费用。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @param sig     Hex格式的合约方法ID
      * @param amount  业务费用
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String setFee(String ddcAddr, String sig, BigInteger amount) throws Exception {
-        return setFee(ddcAddr, sig, amount, RequestOptions.builder(ChargeService.class).build());
+    public String setFee(String sender, String ddcAddr, String sig, BigInteger amount) throws Exception {
+        return setFee(sender, ddcAddr, sig, amount, RequestOptions.builder(ChargeService.class).build());
     }
 
     /**
      * 运营方调用接口设置指定的DDC主合约的方法调用费用。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @param sig     Hex格式的合约方法ID
      * @param amount  业务费用
@@ -208,30 +199,20 @@ public class ChargeService extends BaseService {
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String setFee(String ddcAddr, String sig, BigInteger amount, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
-        }
+    public String setFee(String sender, String ddcAddr, String sig, BigInteger amount, RequestOptions options) throws Exception {
 
-        if (!WalletUtils.isValidAddress(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check sender
+        checkSender(sender);
 
-        if (Strings.isEmpty(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_EMPTY);
-        }
+        // check ddc contract address
+        checkDdcAddr(ddcAddr);
 
-        if (!HexUtils.isValid4ByteHash(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_NOT_4BYTE_HASH);
-        }
+        // check sig
+        checkSig(sig);
 
-        if (amount == null) {
-            throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
-        }
+        // check amount
+        checkAmount(amount);
 
-        if (BigInteger.ZERO.compareTo(amount) >= 0) {
-            throw new DDCException(ErrorMessage.AMOUNT_LT_ZERO);
-        }
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcAddr);
@@ -239,47 +220,42 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, ChargeFunctions.SET_FEE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SET_FEE);
         return (String) respJsonRpcBean.getResult();
     }
 
     /**
      * 运营方调用接口删除指定的DDC主合约的方法调用费用。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @param sig     Hex格式的合约方法ID
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String delFee(String ddcAddr, String sig) throws Exception {
-        return delFee(ddcAddr, sig, RequestOptions.builder(ChargeService.class).build());
+    public String delFee(String sender, String ddcAddr, String sig) throws Exception {
+        return delFee(sender, ddcAddr, sig, RequestOptions.builder(ChargeService.class).build());
     }
 
     /**
      * 运营方调用接口删除指定的DDC主合约的方法调用费用。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @param sig     Hex格式的合约方法ID
      * @param options configuration
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String delFee(String ddcAddr, String sig, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
-        }
+    public String delFee(String sender, String ddcAddr, String sig, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
 
-        if (!WalletUtils.isValidAddress(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check ddc contract address
+        checkDdcAddr(ddcAddr);
 
-        if (Strings.isEmpty(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_EMPTY);
-        }
-
-        if (!HexUtils.isValid4ByteHash(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_NOT_4BYTE_HASH);
-        }
+        // check sig
+        checkSig(sig);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -287,44 +263,44 @@ public class ChargeService extends BaseService {
         arrayList.add(sig);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, ChargeFunctions.DELETE_FEE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_FEE);
         return (String) respJsonRpcBean.getResult();
     }
 
     /**
      * 运营方调用该接口删除指定的DDC业务主逻辑合约授权。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String delDDC(String ddcAddr) throws Exception {
-        return delDDC(ddcAddr, RequestOptions.builder(ChargeService.class).build());
+    public String delDDC(String sender, String ddcAddr) throws Exception {
+        return delDDC(sender, ddcAddr, RequestOptions.builder(ChargeService.class).build());
     }
 
     /**
      * 运营方调用该接口删除指定的DDC业务主逻辑合约授权。
      *
+     * @param sender
      * @param ddcAddr DDC业务主逻辑合约地址
      * @param options configuration
      * @return 返回交易哈希
      * @throws Exception
      */
-    public String delDDC(String ddcAddr, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
-        }
+    public String delDDC(String sender, String ddcAddr, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
 
-        if (!WalletUtils.isValidAddress(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_NOT_ADDRESS_FORMAT);
-        }
+        // check ddc contract address
+        checkDdcAddr(ddcAddr);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(new Address(ddcAddr));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, ChargeFunctions.DELETE_DDC);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_DDC);
         return (String) respJsonRpcBean.getResult();
     }
 

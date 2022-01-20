@@ -7,9 +7,7 @@ import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.RequestOptions;
-import org.fisco.bcos.web3j.crypto.WalletUtils;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
-import org.fisco.bcos.web3j.utils.Strings;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -31,12 +29,12 @@ public class DDC1155Service extends BaseService {
      * @param to     接收者账户
      * @param amount DDC数量
      * @param ddcURI DDCURI
-     * @param data 附加数据
+     * @param data   附加数据
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String mint(String to, BigInteger amount, String ddcURI, byte[] data) throws Exception {
-        return mint(to, amount, ddcURI, data, RequestOptions.builder(DDC1155Service.class).build());
+    public String safeMint(String sender, String to, BigInteger amount, String ddcURI, byte[] data) throws Exception {
+        return safeMint(sender, to, amount, ddcURI, data, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -47,17 +45,18 @@ public class DDC1155Service extends BaseService {
      * @param ddcURI  DDC URI
      * @param options config
      * @param data    附加数据
-     * @return        交易哈希
+     * @return 交易哈希
      * @throws Exception Exception
      */
-    public String mint(String to, BigInteger amount, String ddcURI, byte[] data, RequestOptions options) throws Exception {
-        if (!WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+    public String safeMint(String sender, String to, BigInteger amount, String ddcURI, byte[] data, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
 
-        if (null == amount || BigInteger.ZERO.compareTo(amount) >= 0) {
-            throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
-        }
+        // check to
+        checkTo(to);
+
+        // check amount
+        checkAmount(amount);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -66,7 +65,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcURI);
         arrayList.add(data);
 
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.Mint);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.Mint);
 
         return (String) respJsonRpcBean.getResult();
     }
@@ -78,11 +77,11 @@ public class DDC1155Service extends BaseService {
      * @param to      接收者账户
      * @param ddcInfo DDC信息
      * @param data    附加数据
-     * @return        交易哈希
+     * @return 交易哈希
      * @throws Exception Exception
      */
-    public String mintBatch(String to, Multimap<BigInteger, String> ddcInfo, byte[] data) throws Exception {
-        return mintBatch(to, ddcInfo, data, RequestOptions.builder(DDC1155Service.class).build());
+    public String safeMintBatch(String sender, String to, Multimap<BigInteger, String> ddcInfo, byte[] data) throws Exception {
+        return safeMintBatch(sender, to, ddcInfo, data, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -95,13 +94,13 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String mintBatch(String to, Multimap<BigInteger, String> ddcInfo, byte[] data, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+    public String safeMintBatch(String sender, String to, Multimap<BigInteger, String> ddcInfo, byte[] data, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check to
+        checkTo(to);
+
         if (null == ddcInfo || ddcInfo.isEmpty()) {
             throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
         }
@@ -109,7 +108,7 @@ public class DDC1155Service extends BaseService {
         List<String> ddcURI = new ArrayList<>();
 
         ddcInfo.forEach((key, value) -> {
-            //验证accName不为空
+            // 验证accName不为空
             if (null == key || BigInteger.ZERO.compareTo(key) >= 0) {
                 throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
             }
@@ -125,7 +124,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcURI.stream().collect(Collectors.joining(",")));
         arrayList.add(data);
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.MINT_BATCH);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.MINT_BATCH);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -137,8 +136,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String setApprovalForAll(String operator, Boolean approved) throws Exception {
-        return setApprovalForAll(operator, approved, RequestOptions.builder(DDC1155Service.class).build());
+    public String setApprovalForAll(String sender, String operator, Boolean approved) throws Exception {
+        return setApprovalForAll(sender, operator, approved, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -150,10 +149,12 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String setApprovalForAll(String operator, Boolean approved, RequestOptions options) throws Exception {
-        if (!WalletUtils.isValidAddress(operator)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+    public String setApprovalForAll(String sender, String operator, Boolean approved, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check sender
+        checkOperator(operator);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -161,7 +162,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(approved);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.SET_APPROVAL_FOR_ALL);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SET_APPROVAL_FOR_ALL);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -187,15 +188,11 @@ public class DDC1155Service extends BaseService {
      * @throws Exception Exception
      */
     public Boolean isApprovedForAll(String owner, String operator, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(owner)) {
-            throw new DDCException(ErrorMessage.FROM_ACCOUNT_IS_EMPTY);
-        }
-        if (Strings.isEmpty(operator)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(owner) || !WalletUtils.isValidAddress(operator)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+
+        // check owner
+        checkOwner(owner);
+        // check operator
+        checkOperator(operator);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -220,8 +217,8 @@ public class DDC1155Service extends BaseService {
      * @return 转移结果
      * @throws Exception Exception
      */
-    public String safeTransferFrom(String from, String to, BigInteger ddcId, BigInteger amount, byte[] data) throws Exception {
-        return safeTransferFrom(from, to, ddcId, amount, data, RequestOptions.builder(DDC1155Service.class).build());
+    public String safeTransferFrom(String sender, String from, String to, BigInteger ddcId, BigInteger amount, byte[] data) throws Exception {
+        return safeTransferFrom(sender, from, to, ddcId, amount, data, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -236,19 +233,18 @@ public class DDC1155Service extends BaseService {
      * @return 转移结果
      * @throws Exception Exception
      */
-    public String safeTransferFrom(String from, String to, BigInteger ddcId, BigInteger amount, byte[] data, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(from)) {
-            throw new DDCException(ErrorMessage.FROM_ACCOUNT_IS_EMPTY);
-        }
-        if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(from) || !WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
-        if (null == ddcId || BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
-        }
+    public String safeTransferFrom(String sender, String from, String to, BigInteger ddcId, BigInteger amount, byte[] data, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check from
+        checkFrom(from);
+
+        // check to
+        checkTo(to);
+
+        // check ddc id
+        checkDdcId(ddcId);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -259,7 +255,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(data);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.SAFE_TRANSFER_FROM);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SAFE_TRANSFER_FROM);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -273,8 +269,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String safeBatchTransferFrom(String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data) throws Exception {
-        return safeBatchTransferFrom(from, to, ddcs, data, RequestOptions.builder(DDC1155Service.class).build());
+    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data) throws Exception {
+        return safeBatchTransferFrom(sender, from, to, ddcs, data, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -288,16 +284,13 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String safeBatchTransferFrom(String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(from)) {
-            throw new DDCException(ErrorMessage.FROM_ACCOUNT_IS_EMPTY);
-        }
-        if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(from) || !WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+        // check from
+        checkFrom(from);
+        // check to
+        checkTo(to);
         if (null == ddcs || ddcs.isEmpty()) {
             throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
         }
@@ -323,7 +316,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(data.stream().map(Object::toString).collect(Collectors.joining(",")));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.SAFE_BATCH_TRANSFER_FROM);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SAFE_BATCH_TRANSFER_FROM);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -334,8 +327,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String freeze(BigInteger ddcId) throws Exception {
-        return freeze(ddcId, RequestOptions.builder(DDC1155Service.class).build());
+    public String freeze(String sender, BigInteger ddcId) throws Exception {
+        return freeze(sender, ddcId, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -346,20 +339,18 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String freeze(BigInteger ddcId, RequestOptions options) throws Exception {
-        if (null == ddcId) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
-        if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+    public String freeze(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+        // check ddc id
+        checkDdcId(ddcId);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.FREEZE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.FREEZE);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -370,8 +361,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String unFreeze(BigInteger ddcId) throws Exception {
-        return unFreeze(ddcId, RequestOptions.builder(DDC1155Service.class).build());
+    public String unFreeze(String sender, BigInteger ddcId) throws Exception {
+        return unFreeze(sender, ddcId, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -382,19 +373,19 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String unFreeze(BigInteger ddcId, RequestOptions options) throws Exception {
-        if (null == ddcId) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
-        }
-        if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+    public String unFreeze(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check ddc id
+        checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.UNFREEZE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.UNFREEZE);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -407,8 +398,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String burn(String owner, BigInteger ddcId) throws Exception {
-        return burn(owner, ddcId, RequestOptions.builder(DDC1155Service.class).build());
+    public String burn(String sender, String owner, BigInteger ddcId) throws Exception {
+        return burn(sender, owner, ddcId, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -420,26 +411,20 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String burn(String owner, BigInteger ddcId, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(owner)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(owner)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
-        if (null == ddcId) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
-        }
-        if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+    public String burn(String sender, String owner, BigInteger ddcId, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check owner
+        checkOwner(owner);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(owner);
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.BURN);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.BURN);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -452,8 +437,8 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String burnBatch(String owner, List<BigInteger> ddcIds) throws Exception {
-        return burnBatch(owner, ddcIds, RequestOptions.builder(DDC1155Service.class).build());
+    public String burnBatch(String sender, String owner, List<BigInteger> ddcIds) throws Exception {
+        return burnBatch(sender, owner, ddcIds, RequestOptions.builder(DDC1155Service.class).build());
     }
 
     /**
@@ -465,13 +450,13 @@ public class DDC1155Service extends BaseService {
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String burnBatch(String owner, List<BigInteger> ddcIds, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(owner)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(owner)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
+    public String burnBatch(String sender, String owner, List<BigInteger> ddcIds, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check owner
+        checkOwner(owner);
+
         if (null == ddcIds || ddcIds.isEmpty()) {
             throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
         }
@@ -481,7 +466,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(options, arrayList, DDC1155Functions.BURN_BATCH);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.BURN_BATCH);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -507,18 +492,13 @@ public class DDC1155Service extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String owner, BigInteger ddcId, RequestOptions options) throws Exception {
-        if (Strings.isEmpty(owner)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(owner)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
-        if (null == ddcId) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
-        }
-        if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+
+
+        // check owner
+        checkOwner(owner);
+
+        // check ddc id
+        checkDdcId(ddcId);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -548,6 +528,7 @@ public class DDC1155Service extends BaseService {
      * @throws Exception
      */
     public List<BigInteger> balanceOfBatch(Multimap<String, BigInteger> ddcs, RequestOptions options) throws Exception {
+
         if (null == ddcs || ddcs.isEmpty()) {
             throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
         }
@@ -590,12 +571,10 @@ public class DDC1155Service extends BaseService {
      * @throws Exception
      */
     public String ddcURI(BigInteger ddcId, RequestOptions options) throws Exception {
-        if (null == ddcId) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
-        }
-        if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+
+        // check ddc id
+        checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);

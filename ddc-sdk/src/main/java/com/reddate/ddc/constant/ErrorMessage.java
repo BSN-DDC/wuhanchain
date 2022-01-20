@@ -51,6 +51,13 @@ public enum ErrorMessage {
     TRANSACTION_FAILED(1039, "transaction failed"),
     GAS_PRICE_DEFINITION_ERROR(1040, "gasPrice definition error"),
     GAS_LIMIT_DEFINITION_ERROR(1041, "gasLimit definition error"),
+    REQUEST_OPTIONS_BUILDER_FAILED(1042, "requestOptions builder failed"),
+    SENDER_IS_EMPTY(1043, "sender is empty"),
+    SENDER_IS_NOT_A_STANDARD_ADDRESS_format(1044, "accAddr is empty"),
+    OWNER_IS_EMPTY(1045, "owner is empty"),
+    OWNER_IS_NOT_ADDRESS_FORMAT(1046, "owner is not a standard address format"),
+    OPERATOR_IS_EMPTY(1047, "operator is empty"),
+    OPERATOR_IS_NOT_ADDRESS_FORMAT(1048, "operator is not a standard address format"),
     REQUEST_FAILED(2001, "profile initialization failed"),
     ;
 

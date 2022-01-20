@@ -55,7 +55,8 @@ public class AnalyzeChainInfoUtils {
                 stringBuilder.append(field.getType());
                 stringBuilder.append(" ");
                 stringBuilder.append(field.getName());
-                throw new IllegalAccessException(stringBuilder.toString());
+                continue;
+//                throw new IllegalAccessException(stringBuilder.toString());
             }
 
             field.setAccessible(true);

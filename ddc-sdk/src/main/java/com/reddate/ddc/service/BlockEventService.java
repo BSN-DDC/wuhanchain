@@ -45,7 +45,6 @@ public class BlockEventService extends BaseService {
         configuration = basicConfiguration;
         // event entity binding
         eventBeanMap.put(AuthorityFunctions.ADD_ACCOUNT_EVENT, AddAccountEventBean.class);
-        eventBeanMap.put(AuthorityFunctions.UPDATE_ACCOUNT_EVENT, UpdateAccountEventBean.class);
         eventBeanMap.put(AuthorityFunctions.UPDATE_ACCOUNT_STATE_EVENT, UpdateAccountStateEventBean.class);
 
         eventBeanMap.put(ChargeFunctions.RECHARGE_EVENT, ReChargeEventBean.class);

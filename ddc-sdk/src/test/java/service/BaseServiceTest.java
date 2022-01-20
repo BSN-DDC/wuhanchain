@@ -15,9 +15,12 @@ import java.math.BigInteger;
 @Slf4j
 class BaseServiceTest {
 
-    SignEventListener signEventListener = event -> "";
+    // sign event listener
+    SignEventListener signEventListener = event -> null;
 
+    // ddcSdkClient instantiation
     DDCSdkClient  ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+
 
     @Test
     void getBlockNumber() throws Exception {
@@ -59,5 +62,11 @@ class BaseServiceTest {
     void getGasPrice() throws Exception {
         BigInteger gasPrice = ddcSdkClient.baseService.getGasPrice();
         log.info(String.valueOf(gasPrice));
+    }
+
+    @Test
+    void getTransByStatus() throws Exception {
+        boolean status = ddcSdkClient.baseService.getTransByStatus("0xb602c3187c41bf9041141c95ce373b5455662768eaf16338713f113d742b7147");
+        log.info(String.valueOf(status));
     }
 }

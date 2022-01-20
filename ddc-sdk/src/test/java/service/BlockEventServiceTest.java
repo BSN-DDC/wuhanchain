@@ -13,15 +13,17 @@ import java.util.ArrayList;
 @Slf4j
 class BlockEventServiceTest {
 
-    SignEventListener signEventListener = event -> "";
+    // sign event listener
+    SignEventListener signEventListener = event -> null;
 
-    DDCSdkClient service = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    // ddcSdkClient instantiation
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
 
 
     @Test
     void getBlockEvent() throws Exception {
         ArrayList<Object> result = new ArrayList<>();
-        result.addAll(service.blockEventService.getBlockEvent(new BigInteger("767448")));
+        result.addAll(ddcSdkClient.blockEventService.getBlockEvent(new BigInteger("838940")));
         log.info(JSON.toJSONString(result));
 
         result.forEach(t -> {

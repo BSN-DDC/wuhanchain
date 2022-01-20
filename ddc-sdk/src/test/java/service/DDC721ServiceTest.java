@@ -16,39 +16,20 @@ import static org.junit.Assert.assertNotNull;
 @Slf4j
 class DDC721ServiceTest {
 
-    /*
-     * isApprovedForAll            0xe985e9c5
-     * safeTransferFrom            0xb88d4fde
-     * getApproved                 0x081812fc
-     * initialize                  0x4cd88b76
-     * mint                        0xd0def521
-     * setApprovalForAll           0xa22cb465
-     * supportsInterface           0x01ffc9a7
-     * symbol                      0x95d89b41
-     * approve                     0x095ea7b3
-     * freeze                      0xd7a78db8
-     * ownerOf                     0x6352211e
-     * renounceOwnership           0x715018a6
-     * setAuthorityLogic           0x41044052
-     * unFreeze                    0xd302b0dc
-     * balanceOf                   0x70a08231
-     * name                        0x06fdde03
-     * owner                       0x8da5cb5b
-     * setChargeLogic              0xa419a333
-     * transferFrom                0x23b872dd
-     * transferOwnership           0xf2fde38b
-     * burn                        0x42966c68
-     * ddcURI                      0x293ec97c
-     *
-     * */
+    // sign event listener
+    SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
-    SignEventListener signEventListener = event -> transactionSignature(event.getRawTransaction());
+    // ddcSdkClient instantiation
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
 
-    DDCSdkClient  service = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    //  The address the transaction is send from.
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3306066";
 
+    private static String transactionSignature(String sender, RawTransaction transaction) {
+        // sender: Obtain the private key according to the sender and complete its signature
 
-    private static String transactionSignature(RawTransaction transaction) {
-        String privateKey = "0x82ab01647229a2179307bc47bb030fc55b6f69a45167644173602641f1967d93";
+        //sender privateKey
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -56,16 +37,15 @@ class DDC721ServiceTest {
 
     @Test
     void mint() throws Exception {
-        String tx = service.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "wang-xxqq-9919");
+        String tx = ddcSdkClient.ddc721Service.mint(sender, "0x88e58851815d6dfd28586d1d9a9785a838f3b63c", "wang-xxqq-9919");
         log.info(tx);
         assertNotNull(tx);
-
     }
 
     @Test
     void safeMint() throws Exception {
 
-        String tx = service.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "wang-xxqq-9919");
+        String tx = ddcSdkClient.ddc721Service.mint(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "wang-xxqq-9919");
         log.info(tx);
         assertNotNull(tx);
 
@@ -73,28 +53,28 @@ class DDC721ServiceTest {
 
     @Test
     void approve() throws Exception {
-        String tx = service.ddc721Service.approve("0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("4"));
+        String tx = ddcSdkClient.ddc721Service.approve(sender, "0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("4"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void getApproved() throws Exception {
-        String tx = service.ddc721Service.getApproved(new BigInteger("4"));
+        String tx = ddcSdkClient.ddc721Service.getApproved(new BigInteger("4"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void setApprovalForAll() throws Exception {
-        String tx = service.ddc721Service.setApprovalForAll("0x9d37d92d3bca605a49f21642c309e578b16040fd", true);
+        String tx = ddcSdkClient.ddc721Service.setApprovalForAll(sender, "0x9d37d92d3bca605a49f21642c309e578b16040fd", true);
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void isApprovedForAll() throws Exception {
-        Boolean tx = service.ddc721Service.isApprovedForAll("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd");
+        Boolean tx = ddcSdkClient.ddc721Service.isApprovedForAll("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd");
         log.info(String.valueOf(tx));
         assertNotNull(tx);
     }
@@ -103,21 +83,21 @@ class DDC721ServiceTest {
     void safeTransferFrom() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = service.ddc721Service.safeTransferFrom("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("4"), data);
+        String tx = ddcSdkClient.ddc721Service.safeTransferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("4"), data);
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void transferFrom() throws Exception {
-        String tx = service.ddc721Service.transferFrom("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("5"));
+        String tx = ddcSdkClient.ddc721Service.transferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x9d37d92d3bca605a49f21642c309e578b16040fd", new BigInteger("5"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void freeze() throws Exception {
-        String tx = service.ddc721Service.freeze(new BigInteger("6"));
+        String tx = ddcSdkClient.ddc721Service.freeze(sender, new BigInteger("6"));
         log.info(tx);
         assertNotNull(tx);
     }
@@ -125,49 +105,49 @@ class DDC721ServiceTest {
 
     @Test
     void unFreeze() throws Exception {
-        String tx = service.ddc721Service.unFreeze(new BigInteger("6"));
+        String tx = ddcSdkClient.ddc721Service.unFreeze(sender, new BigInteger("6"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void burn() throws Exception {
-        String tx = service.ddc721Service.burn(new BigInteger("6"));
+        String tx = ddcSdkClient.ddc721Service.burn(sender, new BigInteger("6"));
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void balanceOf() throws Exception {
-        BigInteger bigInteger = service.ddc721Service.balanceOf("0x019ba4600e117f06e3726c0b100a2f10ec52339e");
+        BigInteger bigInteger = ddcSdkClient.ddc721Service.balanceOf("0x019ba4600e117f06e3726c0b100a2f10ec52339e");
         log.info(bigInteger.toString());
         assertNotNull(bigInteger);
     }
 
     @Test
     void ownerOf() throws Exception {
-        String account = service.ddc721Service.ownerOf(new BigInteger("5"));
+        String account = ddcSdkClient.ddc721Service.ownerOf(new BigInteger("5"));
         log.info(account);
         assertNotNull(account);
     }
 
     @Test
     void name() throws Exception {
-        String name = service.ddc721Service.name();
+        String name = ddcSdkClient.ddc721Service.name();
         log.info(name);
         assertNotNull(name);
     }
 
     @Test
     void symbol() throws Exception {
-        String symbol = service.ddc721Service.symbol();
+        String symbol = ddcSdkClient.ddc721Service.symbol();
         log.info(symbol);
         assertNotNull(symbol);
     }
 
     @Test
     void ddcURI() throws Exception {
-        String ddcURI = service.ddc721Service.ddcURI(new BigInteger("5"));
+        String ddcURI = ddcSdkClient.ddc721Service.ddcURI(new BigInteger("5"));
         log.info(ddcURI);
     }
 

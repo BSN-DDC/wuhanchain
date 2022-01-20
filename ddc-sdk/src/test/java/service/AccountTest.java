@@ -16,8 +16,12 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 public class AccountTest {
 
+    // sign event listener
     SignEventListener signEventListener = event -> null;
+
+    // ddcSdkClient instantiation
     DDCSdkClient  ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+
 
     @Test
     public void createAccount() {
