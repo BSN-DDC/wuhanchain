@@ -2,14 +2,12 @@ package com.reddate.ddc.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.reddate.ddc.constant.*;
-import com.reddate.ddc.dto.config.BasicConfiguration;
 import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.ddc.*;
 import com.reddate.ddc.dto.wuhanchain.BlockBean;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
 import com.reddate.ddc.exception.DDCException;
-import com.reddate.ddc.net.RequestOptions;
 import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.*;
 
+import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.analyzeEventLog;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 
@@ -31,18 +30,13 @@ import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 public class BlockEventService extends BaseService {
     private final Logger logger = LoggerFactory.getLogger(BlockEventService.class);
 
-    public volatile static BasicConfiguration configuration;
-
     /**
      * eventBeanMap
      */
     private HashMap<String, Class> eventBeanMap = new HashMap<>();
 
-    public BlockEventService(BasicConfiguration basicConfiguration) {
-        if (Objects.isNull(basicConfiguration)) {
-            throw new DDCException(ErrorMessage.BASIC_CONFIGURATION_IS_EMPTY);
-        }
-        configuration = basicConfiguration;
+    public BlockEventService() {
+
         // event entity binding
         eventBeanMap.put(AuthorityFunctions.ADD_ACCOUNT_EVENT, AddAccountEventBean.class);
         eventBeanMap.put(AuthorityFunctions.UPDATE_ACCOUNT_STATE_EVENT, UpdateAccountStateEventBean.class);
@@ -66,12 +60,8 @@ public class BlockEventService extends BaseService {
 
 
     public <T extends BaseEventBean> ArrayList<T> getBlockEvent(BigInteger blockNum) throws Exception {
-        return getBlockEvent(blockNum, RequestOptions.getDefault(gatewayConfig));
-    }
-
-    public <T extends BaseEventBean> ArrayList<T> getBlockEvent(BigInteger blockNum, RequestOptions options) throws Exception {
         // get block
-        RespJsonRpcBean respJsonRpcBean = getBlockByNumber(blockNum, options);
+        RespJsonRpcBean respJsonRpcBean = getBlockByNumber(blockNum);
         BlockBean ethBlock = JSONObject.parseObject(JSONObject.toJSONString(respJsonRpcBean.getResult()), BlockBean.class);
         if (Objects.isNull(ethBlock)) {
             throw new DDCException(ErrorMessage.GET_BLOCK_BY_NUMBER_ERROR);
@@ -85,14 +75,14 @@ public class BlockEventService extends BaseService {
         ArrayList<T> arrayList = new ArrayList<>();
         for (TransactionsBean transaction : transactions) {
 
-            TransactionReceipt receipt = getTransactionReceipt(transaction.getHash(), options);
+            TransactionReceipt receipt = getTransactionReceipt(transaction.getHash());
             if (Objects.isNull(receipt)) {
                 throw new DDCException(ErrorMessage.GET_TRANSACTION_RECEIPT_ERROR);
             }
             List<Log> logList = receipt.getLogs();
             for (Log log : logList) {
                 // Get the contract for this event
-                DDCContract contract = configuration.getContracts().stream().filter(t -> t.getContractAddress().equalsIgnoreCase(log.getAddress())).findAny().orElse(null);
+                DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(log.getAddress())).findAny().orElse(null);
                 if (Objects.isNull(contract)) {
                     logger.info(String.format("BlockNum:%s,Contract:%s,非DDC官方合约不统计数据...", blockNum, log.getAddress()));
                     continue;

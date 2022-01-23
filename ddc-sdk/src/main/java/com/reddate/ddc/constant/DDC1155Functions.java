@@ -17,6 +17,7 @@ public class DDC1155Functions {
     public static final String BALANCE_OF = "balanceOf";
     public static final String BALANCE_OF_BATCH = "balanceOfBatch";
     public static final String DDC_URI = "ddcURI";
+    public static final String SetURI = "setURI";
 
     public static final String DDC_1155_TRANSFER_SINGLE_EVENT = "TransferSingle(address,address,address,uint256,uint256)";
     public static final String DDC_1155_TRANSFER_BATCH_EVENT = "TransferBatch(address,address,address,uint256[],uint256[])";

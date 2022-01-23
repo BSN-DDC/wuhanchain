@@ -3,7 +3,9 @@ package service;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.reddate.ddc.DDCSdkClient;
+import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.listener.SignEventListener;
+import com.reddate.ddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
@@ -26,16 +28,20 @@ class DDC1155ServiceTest {
     SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
     // ddcSdkClient instantiation
-    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
     //  The address the transaction is send from.
-    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3306066";
+    public String sender = "0x3a0427c496c7e9408885d132e9fec0b042beb399";
+
+    static {
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+    }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
         //sender privateKey
-        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
+        String privateKey = "0x8f9d8a1619e35892cd36acba0150fd3e2aac8a20865eff75b2500ea7661a1076";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -53,16 +59,19 @@ class DDC1155ServiceTest {
 
     @Test
     void safeMintBatch() throws Exception {
-        byte[] data = new byte[1];
-        data[0] = 1;
-        Multimap<BigInteger, String> map = ArrayListMultimap.create();
-        map.put(new BigInteger("11"), "11");
-        map.put(new BigInteger("22"), "12");
+        try {
+            byte[] data = new byte[1];
+            data[0] = 1;
+            Multimap<BigInteger, String> map = ArrayListMultimap.create();
+            map.put(new BigInteger("11"), "11");
+            map.put(new BigInteger("22"), "12");
 
-
-        String tx = ddcSdkClient.ddc1155Service.safeMintBatch(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", map, data);
-        log.info(tx);
-        assertNotNull(tx);
+            String tx = ddcSdkClient.ddc1155Service.safeMintBatch(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", map, data);
+            log.info(tx);
+            assertNotNull(tx);
+        } catch (DDCException e) {
+            System.out.println(e.getMsg());
+        }
     }
 
 
@@ -163,6 +172,14 @@ class DDC1155ServiceTest {
         String result = ddcSdkClient.ddc1155Service.ddcURI(new BigInteger("7"));
         assertNotNull(result);
         log.info("URL: {}", result);
+    }
+
+    @Test
+    void setURI() throws Exception {
+        String tx = ddcSdkClient.ddc1155Service.setURI(sender ,new BigInteger(""),"");
+        log.info(tx);
+        assertNotNull(tx);
+
     }
 
 }

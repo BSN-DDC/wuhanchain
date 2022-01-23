@@ -5,13 +5,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.constant.EthFunctions;
-import com.reddate.ddc.dto.config.Gateway;
+import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.wuhanchain.ReqJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.listener.SignEvent;
 import com.reddate.ddc.listener.SignEventListener;
+import com.reddate.ddc.net.DDCWuhan;
 import com.reddate.ddc.net.RequestOptions;
 import com.reddate.ddc.util.AnalyzeChainInfoUtils;
 import com.reddate.ddc.util.HexUtils;
@@ -43,40 +44,35 @@ import java.util.*;
 public class BaseService extends RestTemplateUtil {
 
     public volatile static SignEventListener signEventListener;
-    public volatile static Gateway gatewayConfig = new Gateway();
 
-
-    public ReqJsonRpcBean assembleTransaction(String sender, String functionName, ArrayList<Object> params, RequestOptions requestOptions) throws Exception {
+    public ReqJsonRpcBean assembleTransaction(String sender, String functionName, ArrayList<Object> params, RequestOptions requestOptions, DDCContract contract) throws Exception {
         // config check
         checkRequestOptions(requestOptions);
 
+        if (Objects.isNull(contract)){
+            throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+        }
+
         // nonce
-        BigInteger nonce = requestOptions.getNonce();
+        BigInteger nonce = (Objects.nonNull(requestOptions) && requestOptions.getNonce() != null) ? requestOptions.getNonce() : getTransactionCount(sender);
         if (Objects.isNull(nonce)) {
-            nonce = getTransactionCount(sender, requestOptions);
-            if (Objects.isNull(nonce)) {
-                throw new DDCException(ErrorMessage.NONCE_GET_FAILED);
-            }
+            throw new DDCException(ErrorMessage.NONCE_GET_FAILED);
         }
 
         // gasPrice
-        BigInteger gasPrice = requestOptions.getGasPrice();
+        BigInteger gasPrice = (Objects.nonNull(requestOptions) && requestOptions.getGasPrice() != null) ? requestOptions.getGasPrice() : getGasPrice();
         if (Objects.isNull(gasPrice)) {
-            gasPrice = getGasPrice(requestOptions);
-            if (Objects.isNull(gasPrice)) {
-                throw new DDCException(ErrorMessage.GAS_PRICE_GET_FAILED);
-            }
+            throw new DDCException(ErrorMessage.GAS_PRICE_GET_FAILED);
         }
 
         // encodeTransaction
-        String contractAbi = requestOptions.getContractAbi();
+        String contractAbi = contract.getContractAbi();
         String encodeTransaction = encodeTransactionByAbi(contractAbi, functionName, params);
 
         // gasLimit
-        String contractAddress = requestOptions.getContractAddress();
-        BigInteger gasLimit = requestOptions.getGasLimit();
+        String contractAddress = contract.getContractAddress();
+        BigInteger gasLimit = (Objects.nonNull(requestOptions) && requestOptions.getGasLimit() != null) ? requestOptions.getGasLimit() : estimateGas(sender, contractAddress, gasPrice, encodeTransaction, requestOptions);
         if (Objects.isNull(gasLimit)) {
-            gasLimit = estimateGas(sender, contractAddress, gasPrice, encodeTransaction, requestOptions);
             if (BigInteger.ZERO.compareTo(gasLimit) >= 0) {
                 throw new DDCException(ErrorMessage.GAS_LIMIT_GET_FAILED);
             }
@@ -89,7 +85,7 @@ public class BaseService extends RestTemplateUtil {
         SignEvent signEvent = new SignEvent();
         signEvent.setRawTransaction(rawTransaction);
         signEvent.setSender(sender);
-        SignEventListener userEventListener = Objects.isNull(requestOptions.getSignEventListener()) ? signEventListener : requestOptions.getSignEventListener();
+        SignEventListener userEventListener = signEventListener;
         String signedMessage = userEventListener.signEvent(signEvent);
 
         if (Strings.isEmpty(signedMessage)) {
@@ -106,16 +102,6 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public TransactionReceipt getTransactionReceipt(String hash) throws Exception {
-        return getTransactionReceipt(hash, RequestOptions.getDefault());
-    }
-
-    /**
-     * 获取交易回执
-     *
-     * @param hash
-     * @return
-     */
-    public TransactionReceipt getTransactionReceipt(String hash, RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_TRANSACTION_RECEIPT);
 
@@ -124,7 +110,7 @@ public class BaseService extends RestTemplateUtil {
 
         reqJsonRpcBean.setParams(params);
 
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
 
         String result = JSONObject.toJSONString(respJsonRpcBean.getResult());
@@ -138,16 +124,6 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public TransactionsBean getTransactionByHash(String hash) throws Exception {
-        return getTransactionByHash(hash, RequestOptions.getDefault());
-    }
-
-    /**
-     * 获取交易信息
-     *
-     * @param hash
-     * @return
-     */
-    public TransactionsBean getTransactionByHash(String hash, RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_TRANSACTION_BY_HASH);
 
@@ -155,7 +131,7 @@ public class BaseService extends RestTemplateUtil {
         params.add(hash);
         reqJsonRpcBean.setParams(params);
 
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
         String result = JSONObject.toJSONString(respJsonRpcBean.getResult());
         return JSONObject.parseObject(result, TransactionsBean.class);
@@ -165,19 +141,9 @@ public class BaseService extends RestTemplateUtil {
      * 根据交易哈希查询交易状态是否成功
      *
      * @param hash
-     * @return Boolean
-     */
-    public Boolean getTransByStatus(String hash) throws Exception {
-        return getTransByStatus(hash, RequestOptions.getDefault());
-    }
-
-    /**
-     * 根据交易哈希查询交易状态是否成功
-     *
-     * @param hash
      * @return
      */
-    public Boolean getTransByStatus(String hash, RequestOptions options) throws Exception {
+    public Boolean getTransByStatus(String hash) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_TRANSACTION_RECEIPT);
 
@@ -185,7 +151,7 @@ public class BaseService extends RestTemplateUtil {
         params.add(hash);
         reqJsonRpcBean.setParams(params);
 
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         if (null == respJsonRpcBean) {
             throw new DDCException(ErrorMessage.REQUEST_FAILED);
         }
@@ -210,16 +176,6 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public BigInteger getTransactionCount(String address) throws Exception {
-        return getTransactionCount(address, RequestOptions.getDefault());
-    }
-
-    /**
-     * getTransactionCount
-     *
-     * @param address
-     * @return
-     */
-    public BigInteger getTransactionCount(String address, RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_TRANSACTION_COUNT);
 
@@ -228,7 +184,7 @@ public class BaseService extends RestTemplateUtil {
         params.add("pending");
         reqJsonRpcBean.setParams(params);
 
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
         return Numeric.toBigInt(respJsonRpcBean.getResult().toString());
     }
@@ -240,23 +196,14 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public BigInteger getGasPrice() throws Exception {
-        return getGasPrice(RequestOptions.getDefault());
-    }
-
-    /**
-     * gasPrice
-     *
-     * @param
-     * @return
-     */
-    public BigInteger getGasPrice(RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GAS_PRICE);
         reqJsonRpcBean.setParams(new ArrayList<>());
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
         return Numeric.toBigInt(respJsonRpcBean.getResult().toString());
     }
+
 
     /**
      * gasPrice
@@ -265,20 +212,10 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public BigInteger getBlockNumber() throws Exception {
-        return getBlockNumber(RequestOptions.getDefault());
-    }
-
-    /**
-     * gasPrice
-     *
-     * @param
-     * @return
-     */
-    public BigInteger getBlockNumber(RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_BLOCK_NUMBER);
         reqJsonRpcBean.setParams(new ArrayList<>());
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
         return Numeric.toBigInt(respJsonRpcBean.getResult().toString());
     }
@@ -291,23 +228,13 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public RespJsonRpcBean getBlockByNumber(BigInteger blockNumber) throws Exception {
-        return getBlockByNumber(blockNumber, RequestOptions.getDefault());
-    }
-
-    /**
-     * gasPrice
-     *
-     * @param
-     * @return
-     */
-    public RespJsonRpcBean getBlockByNumber(BigInteger blockNumber, RequestOptions options) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_BLOCK_BY_NUMBER);
         ArrayList<Object> params = new ArrayList<>();
         params.add(Numeric.toHexStringWithPrefix(blockNumber));
         params.add(true);
         reqJsonRpcBean.setParams(params);
-        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
         return respJsonRpcBean;
     }
@@ -322,21 +249,21 @@ public class BaseService extends RestTemplateUtil {
      * @throws Exception
      */
     @NotNull
-    public InputAndOutputResult sendCallTransactionAndDecodeOutput(RequestOptions options, ArrayList<Object> arrayList, String functionName) throws Exception {
+    public InputAndOutputResult sendCallTransactionAndDecodeOutput(RequestOptions options, ArrayList<Object> arrayList, String functionName, DDCContract contract) throws Exception {
 
         // function encoder
-        Function function = transactionAssembleForMethodInvoke(options.getContractAbi(), functionName, arrayList);
+        Function function = transactionAssembleForMethodInvoke(contract.getContractAbi(), functionName, arrayList);
         String encodedFunction = FunctionEncoder.encode(function);
 
         // eth call
-        ReqJsonRpcBean reqJsonRpcBean = assembleCallTransaction(encodedFunction, options);
+        ReqJsonRpcBean reqJsonRpcBean = assembleCallTransaction(encodedFunction, contract);
         RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
 
         // check
         resultCheck(respJsonRpcBean);
 
         // decode
-        InputAndOutputResult inputAndOutputResult = AnalyzeChainInfoUtils.analyzeTransactionOutput(options.getContractAbi(), options.getContractBytecode(), encodedFunction, respJsonRpcBean.getResult().toString());
+        InputAndOutputResult inputAndOutputResult = AnalyzeChainInfoUtils.analyzeTransactionOutput(contract.getContractAbi(), contract.getContractBytecode(), encodedFunction, respJsonRpcBean.getResult().toString());
         if (inputAndOutputResult.getResult().size() == 0) {
             throw new DDCException(ErrorMessage.INPUT_AND_OUTPUT_RESULT_IS_EMPTY);
         }
@@ -352,10 +279,10 @@ public class BaseService extends RestTemplateUtil {
      * @return
      * @throws Exception
      */
-    public RespJsonRpcBean assembleTransactionAndSend(String sender, RequestOptions options, ArrayList<Object> arrayList, String functionName) throws Exception {
+    public RespJsonRpcBean assembleTransactionAndSend(String sender, RequestOptions options, ArrayList<Object> arrayList, String functionName, DDCContract contract) throws Exception {
 
         // assembleTransaction
-        ReqJsonRpcBean reqJsonRpcBean = assembleTransaction(sender, functionName, arrayList, options);
+        ReqJsonRpcBean reqJsonRpcBean = assembleTransaction(sender, functionName, arrayList, options, contract);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
@@ -383,26 +310,19 @@ public class BaseService extends RestTemplateUtil {
 
 
     private void checkRequestOptions(RequestOptions requestOptions) {
-        if (Strings.isEmpty(requestOptions.getGateWayUrl())) {
-            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
-        }
-        if (Strings.isEmpty(requestOptions.getContractAbi())) {
-            throw new DDCException(ErrorMessage.CONTRACT_ABI_IS_EMPTY);
-        }
-        if (Strings.isEmpty(requestOptions.getContractBytecode())) {
-            throw new DDCException(ErrorMessage.CONTRACT_BYTECODE_IS_EMPTY);
-        }
-        if (Strings.isEmpty(requestOptions.getContractAddress())) {
-            throw new DDCException(ErrorMessage.CONTRACT_ADDRESS_IS_EMPTY);
-        }
-        if (Objects.isNull(requestOptions.getSignEventListener())) {
+        if (Objects.isNull(signEventListener)) {
             throw new DDCException(ErrorMessage.SIGN_EVENT_LISTENER_IS_EMPTY);
         }
-        if (Objects.nonNull(requestOptions.getGasLimit()) && BigInteger.ZERO.compareTo(requestOptions.getGasLimit()) >= 0) {
-            throw new DDCException(ErrorMessage.GAS_LIMIT_DEFINITION_ERROR);
+        if (Strings.isEmpty(DDCWuhan.getGatewayUrl())) {
+            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
         }
-        if (Objects.nonNull(requestOptions.getGasPrice()) && BigInteger.ZERO.compareTo(requestOptions.getGasPrice()) >= 0) {
-            throw new DDCException(ErrorMessage.GAS_PRICE_DEFINITION_ERROR);
+        if (Objects.nonNull(requestOptions)) {
+            if (null != requestOptions.getGasLimit() && BigInteger.ZERO.compareTo(requestOptions.getGasLimit()) >= 0) {
+                throw new DDCException(ErrorMessage.GAS_LIMIT_DEFINITION_ERROR);
+            }
+            if (null != requestOptions.getGasPrice() && BigInteger.ZERO.compareTo(requestOptions.getGasPrice()) >= 0) {
+                throw new DDCException(ErrorMessage.GAS_PRICE_DEFINITION_ERROR);
+            }
         }
     }
 
@@ -501,8 +421,8 @@ public class BaseService extends RestTemplateUtil {
         }
     }
 
-    private ReqJsonRpcBean assembleCallTransaction(String encodedFunction, RequestOptions requestOptions) {
-        Transaction transaction = Transaction.createEthCallTransaction(null, requestOptions.getContractAddress(), encodedFunction);
+    private ReqJsonRpcBean assembleCallTransaction(String encodedFunction, DDCContract contract) {
+        Transaction transaction = Transaction.createEthCallTransaction(null, contract.getContractAddress(), encodedFunction);
         return getCallJsonRpcBean(transaction);
     }
 

@@ -12,12 +12,14 @@ import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
+import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
+
 public class ChargeService extends BaseService {
 
-    public volatile static DDCContract ddcContract;
+    public volatile static DDCContract chargeContract;
 
-    public ChargeService(DDCContract contractConfiguration) {
-        ddcContract = contractConfiguration;
+    public ChargeService() {
+        chargeContract = DDCContracts.stream().filter(t -> t.getConfigType().equals("charge")).findFirst().orElse(null);
     }
 
     /**
@@ -29,7 +31,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String recharge(String sender, String to, BigInteger amount) throws Exception {
-        return recharge(sender, to, amount, RequestOptions.builder(ChargeService.class).build());
+        return recharge(sender, to, amount, null);
     }
 
     /**
@@ -59,7 +61,7 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.RECHARGE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.RECHARGE, chargeContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -71,7 +73,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String accAddr) throws Exception {
-        return balanceOf(accAddr, RequestOptions.builder(ChargeService.class).build());
+        return balanceOf(accAddr, null);
     }
 
     /**
@@ -92,7 +94,7 @@ public class ChargeService extends BaseService {
         arrayList.add(new Address(accAddr));
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.BALANCE_OF);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.BALANCE_OF, chargeContract);
 
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -106,7 +108,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger queryFee(String ddcAddr, String sig) throws Exception {
-        return queryFee(ddcAddr, sig, RequestOptions.builder(ChargeService.class).build());
+        return queryFee(ddcAddr, sig, null);
     }
 
     /**
@@ -132,7 +134,7 @@ public class ChargeService extends BaseService {
         arrayList.add(sig);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.QUERY_FEE);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.QUERY_FEE, chargeContract);
 
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -146,7 +148,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String selfRecharge(String sender, BigInteger amount) throws Exception {
-        return selfRecharge(sender, amount, RequestOptions.builder(ChargeService.class).build());
+        return selfRecharge(sender, amount, null);
     }
 
     /**
@@ -170,7 +172,7 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SELF_RECHARGE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SELF_RECHARGE, chargeContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -185,7 +187,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String setFee(String sender, String ddcAddr, String sig, BigInteger amount) throws Exception {
-        return setFee(sender, ddcAddr, sig, amount, RequestOptions.builder(ChargeService.class).build());
+        return setFee(sender, ddcAddr, sig, amount, null);
     }
 
     /**
@@ -220,7 +222,7 @@ public class ChargeService extends BaseService {
         arrayList.add(amount);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SET_FEE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.SET_FEE, chargeContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -234,7 +236,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String delFee(String sender, String ddcAddr, String sig) throws Exception {
-        return delFee(sender, ddcAddr, sig, RequestOptions.builder(ChargeService.class).build());
+        return delFee(sender, ddcAddr, sig, null);
     }
 
     /**
@@ -263,7 +265,7 @@ public class ChargeService extends BaseService {
         arrayList.add(sig);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_FEE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_FEE, chargeContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -276,7 +278,7 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String delDDC(String sender, String ddcAddr) throws Exception {
-        return delDDC(sender, ddcAddr, RequestOptions.builder(ChargeService.class).build());
+        return delDDC(sender, ddcAddr, null);
     }
 
     /**
@@ -300,7 +302,7 @@ public class ChargeService extends BaseService {
         arrayList.add(new Address(ddcAddr));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_DDC);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, ChargeFunctions.DELETE_DDC, chargeContract);
         return (String) respJsonRpcBean.getResult();
     }
 

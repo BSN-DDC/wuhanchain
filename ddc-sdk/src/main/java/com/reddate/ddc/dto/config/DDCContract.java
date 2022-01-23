@@ -12,7 +12,6 @@ public class DDCContract {
     private String contractAbi;
     private String contractBytecode;
     private String contractAddress;
-    private String signUserAddress;
 
     public String getConfigType() {
         return configType;
@@ -46,13 +45,10 @@ public class DDCContract {
         this.contractAddress = contractAddress;
     }
 
-    public String getSignUserAddress() {
-        return signUserAddress;
+    public DDCContract(String configType,String contractAbi, String contractBytecode, String contractAddress) {
+        this.configType=configType;
+        this.contractAbi = contractAbi;
+        this.contractBytecode = contractBytecode;
+        this.contractAddress = contractAddress;
     }
-
-    public void setSignUserAddress(String signUserAddress) {
-        this.signUserAddress = signUserAddress;
-    }
-
-
 }

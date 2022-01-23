@@ -2,6 +2,7 @@ package service;
 
 import com.reddate.ddc.DDCSdkClient;
 import com.reddate.ddc.listener.SignEventListener;
+import com.reddate.ddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
@@ -21,16 +22,20 @@ public class ChargeServiceTest {
     SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
     // ddcSdkClient instantiation
-    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
     //  The address the transaction is send from.
-    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3306066";
+    public String sender = "0x3a0427c496c7e9408885d132e9fec0b042beb399";
+
+    static {
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+    }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
         //sender privateKey
-        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
+        String privateKey = "0x8f9d8a1619e35892cd36acba0150fd3e2aac8a20865eff75b2500ea7661a1076";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -48,7 +53,6 @@ public class ChargeServiceTest {
 
     @Test
     public void recharge() throws Exception {
-
         // recharge account address
         String to = "0x3A47C06aD3b400B23481958dB6F94C05887a3b4c";
         BigInteger amount = new BigInteger("5");

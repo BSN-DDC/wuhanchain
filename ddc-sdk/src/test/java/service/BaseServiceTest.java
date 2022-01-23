@@ -19,7 +19,7 @@ class BaseServiceTest {
     SignEventListener signEventListener = event -> null;
 
     // ddcSdkClient instantiation
-    DDCSdkClient  ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
 
     @Test

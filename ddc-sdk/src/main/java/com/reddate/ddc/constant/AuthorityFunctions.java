@@ -19,7 +19,7 @@ public class AuthorityFunctions {
     public static final String DEL_FUNCTION = "delFunction";
 
     public static final String ADD_FUNCTION = "addFunction";
-
+    public static final String CrossPlatformApproval = "crossPlatformApproval";
 
     public static final String ADD_ACCOUNT_EVENT = "AddAccount(address,address)";
     public static final String DEL_ACCOUNT_EVENT = "DelAccount(address)";

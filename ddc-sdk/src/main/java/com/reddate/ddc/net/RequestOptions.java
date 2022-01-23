@@ -2,10 +2,8 @@ package com.reddate.ddc.net;
 
 import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.dto.config.DDCContract;
-import com.reddate.ddc.dto.config.Gateway;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.listener.SignEventListener;
-import com.reddate.ddc.service.*;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigInteger;
@@ -19,78 +17,19 @@ import java.util.Objects;
 
 @EqualsAndHashCode(callSuper = false)
 public class RequestOptions {
-    private final String gateWayUrl;
-    private final String contractAbi;
-    private final String contractBytecode;
-    private final String contractAddress;
     private final BigInteger gasPrice;
     private final BigInteger gasLimit;
     private final int connectTimeout;
-    private final int readTimeout;
     private final int networkRetries;
-    private SignEventListener signEventListener;
-    private static DDCContract ddcContractConfig;
-    private static Gateway gatewayConfig;
-    private static SignEventListener requestSignEventListener;
 
 
     private BigInteger nonce;
 
-    public RequestOptions(String gateWayUrl, String contractAbi, String contractBytecode, String contractAddress, BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int readTimeout, int networkRetries, SignEventListener signEventListener) {
-        this.gateWayUrl = gateWayUrl;
-        this.contractAbi = contractAbi;
-        this.contractBytecode = contractBytecode;
-        this.contractAddress = contractAddress;
+    public RequestOptions(  BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int networkRetries) {
         this.gasPrice = gasPrice;
         this.gasLimit = gasLimit;
         this.connectTimeout = connectTimeout;
-        this.readTimeout = readTimeout;
         this.networkRetries = networkRetries;
-        this.signEventListener = signEventListener;
-    }
-
-    public static RequestOptions getDefault(Gateway gatewayConfig) {
-        return new RequestOptions(
-                gatewayConfig.getGateWayUrl(),
-                null,
-                null,
-                null,
-                gatewayConfig.getGasPrice(),
-                gatewayConfig.getGasLimit(),
-                DDCWuhan.getConnectTimeout(),
-                DDCWuhan.getReadTimeout(),
-                DDCWuhan.getMaxNetworkRetries(),
-                null);
-    }
-
-    public static RequestOptions getDefault() {
-        return new RequestOptions(
-                BaseService.gatewayConfig.getGateWayUrl(),
-                null,
-                null,
-                null,
-                BaseService.gatewayConfig.getGasPrice(),
-                BaseService.gatewayConfig.getGasLimit(),
-                DDCWuhan.getConnectTimeout(),
-                DDCWuhan.getReadTimeout(),
-                DDCWuhan.getMaxNetworkRetries(),
-                null);
-    }
-
-    public String getGateWayUrl() {
-        return gateWayUrl;
-    }
-
-    public String getContractAbi() {
-        return contractAbi;
-    }
-
-    public String getContractBytecode() {
-        return contractBytecode;
-    }
-
-    public String getContractAddress() {
-        return contractAddress;
     }
 
     public BigInteger getGasPrice() {
@@ -100,11 +39,6 @@ public class RequestOptions {
     public BigInteger getGasLimit() {
         return gasLimit;
     }
-
-    public SignEventListener getSignEventListener() {
-        return signEventListener;
-    }
-
 
     public BigInteger getNonce() {
         return nonce;
@@ -122,90 +56,32 @@ public class RequestOptions {
         return networkRetries;
     }
 
-    public int getReadTimeout() {
-        return readTimeout;
-    }
 
-    public static <T> RequestOptionsBuilder builder(T t) {
-        if (!t.equals(DDC721Service.class) && !t.equals(DDC1155Service.class) && !t.equals(ChargeService.class) && !t.equals(AuthorityService.class)) {
-            throw new DDCException(ErrorMessage.REQUEST_OPTIONS_BUILDER_FAILED);
-        }
-        if (t.equals(DDC721Service.class)) {
-            requestSignEventListener = DDC721Service.signEventListener;
-            ddcContractConfig = DDC721Service.ddcContract;
-        }
-        if (t.equals(DDC1155Service.class)) {
-            requestSignEventListener = DDC1155Service.signEventListener;
-            ddcContractConfig = DDC1155Service.ddcContract;
-        }
-        if (t.equals(ChargeService.class)) {
-            requestSignEventListener = ChargeService.signEventListener;
-            ddcContractConfig = ChargeService.ddcContract;
-        }
-        if (t.equals(AuthorityService.class)) {
-            requestSignEventListener = AuthorityService.signEventListener;
-            ddcContractConfig = AuthorityService.ddcContract;
-        }
-        gatewayConfig = BaseService.gatewayConfig;
-        return new RequestOptionsBuilder(ddcContractConfig, gatewayConfig, requestSignEventListener);
+    public static <T> RequestOptionsBuilder builder() {
+
+        return new RequestOptionsBuilder();
     }
 
     public static final class RequestOptionsBuilder {
-
-        private String gateWayUrl;
-        private String contractAbi;
-        private String contractBytecode;
-        private String contractAddress;
         private BigInteger gasPrice;
         private BigInteger gasLimit;
         private int connectTimeout;
-        private int readTimeout;
         private int networkRetries;
         private SignEventListener signEventListener;
 
-        public RequestOptionsBuilder(DDCContract ddcContractConfig, Gateway gatewayConfig, SignEventListener signEventListener) {
+        public RequestOptionsBuilder(DDCContract ddcContractConfig) {
             if (Objects.isNull(ddcContractConfig)) {
                 throw new DDCException(ErrorMessage.REQUEST_OPTIONS_INIT_FAILED);
             }
-            this.gateWayUrl = gatewayConfig.getGateWayUrl();
-            this.contractAbi = ddcContractConfig.getContractAbi();
-            this.contractBytecode = ddcContractConfig.getContractBytecode();
-            this.contractAddress = ddcContractConfig.getContractAddress();
-            this.gasPrice = gatewayConfig.getGasPrice();
-            this.gasLimit = gatewayConfig.getGasLimit();
             this.connectTimeout = DDCWuhan.getConnectTimeout();
-            this.readTimeout = DDCWuhan.getReadTimeout();
             this.networkRetries = DDCWuhan.getMaxNetworkRetries();
-            this.signEventListener = signEventListener;
         }
 
         public RequestOptionsBuilder() {
-            this.gateWayUrl = null;
-            this.contractAbi = null;
-            this.contractBytecode = null;
-            this.contractAddress = null;
             this.gasPrice = null;
             this.gasLimit = null;
             this.connectTimeout = DDCWuhan.getConnectTimeout();
-            this.readTimeout = DDCWuhan.getReadTimeout();
             this.networkRetries = DDCWuhan.getMaxNetworkRetries();
-            this.signEventListener = null;
-        }
-
-
-        public String getGateWayUrl() {
-            return gateWayUrl;
-        }
-
-        public RequestOptionsBuilder setGateWayUrl(String gateWayUrl) {
-            normalizeApiKey(gateWayUrl);
-            this.gateWayUrl = gateWayUrl;
-            return this;
-        }
-
-        public RequestOptionsBuilder setSignEventListener(SignEventListener signEventListener) {
-            this.signEventListener = signEventListener;
-            return this;
         }
 
         public BigInteger getGasPrice() {
@@ -226,11 +102,6 @@ public class RequestOptions {
             return this;
         }
 
-        public RequestOptionsBuilder setReadTimeout(int readTimeout) {
-            this.readTimeout = readTimeout;
-            return this;
-        }
-
         public RequestOptionsBuilder setConnectTimeout(int connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
@@ -246,29 +117,10 @@ public class RequestOptions {
          */
         public RequestOptions build() {
             return new RequestOptions(
-                    this.gateWayUrl,
-                    this.contractAbi,
-                    this.contractBytecode,
-                    this.contractAddress,
                     this.gasPrice,
                     this.gasLimit,
                     connectTimeout,
-                    readTimeout,
-                    networkRetries,
-                    this.signEventListener);
+                    networkRetries);
         }
     }
-
-    private static String normalizeApiKey(String gateWayUrl) {
-        // null gateWayUrl are considered "valid"
-        if (gateWayUrl == null) {
-            return null;
-        }
-        String normalized = gateWayUrl.trim();
-        if (normalized.isEmpty()) {
-            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
-        }
-        return normalized;
-    }
-
 }

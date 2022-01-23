@@ -13,16 +13,18 @@ import org.fisco.bcos.web3j.utils.Strings;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
+import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
+
 
 /**
  * @author wxq
  */
 public class DDC721Service extends BaseService {
 
-    public volatile static DDCContract ddcContract;
+    public volatile static DDCContract DDC721Contract;
 
-    public DDC721Service(DDCContract contractConfiguration) {
-        ddcContract = contractConfiguration;
+    public DDC721Service() {
+        DDC721Contract = DDCContracts.stream().filter(t -> t.getConfigType().equals("721")).findFirst().orElse(null);
     }
 
     /**
@@ -35,7 +37,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String mint(String sender, String to, String ddcURI) throws Exception {
-        return mint(sender, to, ddcURI, RequestOptions.builder(DDC721Service.class).build());
+        return mint(sender, to, ddcURI, null);
     }
 
     /**
@@ -64,7 +66,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcURI);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.MINT);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.MINT, DDC721Contract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -79,7 +81,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String safeMint(String sender, String to, String ddcURI, byte[] data) throws Exception {
-        return safeMint(sender, to, ddcURI, data, RequestOptions.builder(DDC721Service.class).build());
+        return safeMint(sender, to, ddcURI, data, null);
     }
 
     /**
@@ -110,7 +112,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(data);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SAFE_MINT);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SAFE_MINT, DDC721Contract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -124,7 +126,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String approve(String sender, String to, BigInteger ddcId) throws Exception {
-        return approve(sender, to, ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return approve(sender, to, ddcId, null);
     }
 
     /**
@@ -152,7 +154,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.APPROVE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.APPROVE, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -166,7 +168,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String getApproved(BigInteger ddcId) throws Exception {
-        return getApproved(ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return getApproved(ddcId, null);
     }
 
     /**
@@ -185,7 +187,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.GET_APPROVED);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.GET_APPROVED, DDC721Contract);
 
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -200,7 +202,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String setApprovalForAll(String sender, String operator, Boolean approved) throws Exception {
-        return setApprovalForAll(sender, operator, approved, RequestOptions.builder(DDC721Service.class).build());
+        return setApprovalForAll(sender, operator, approved, null);
     }
 
     /**
@@ -229,7 +231,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(approved);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SET_APPROVAL_FOR_ALL);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SET_APPROVAL_FOR_ALL, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -244,7 +246,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public Boolean isApprovedForAll(String owner, String operator) throws Exception {
-        return isApprovedForAll(owner, operator, RequestOptions.builder(DDC721Service.class).build());
+        return isApprovedForAll(owner, operator, null);
     }
 
     /**
@@ -268,7 +270,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(operator);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.IS_APPROVED_FOR_ALL);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.IS_APPROVED_FOR_ALL, DDC721Contract);
 
         return (Boolean) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -285,7 +287,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String safeTransferFrom(String sender, String from, String to, BigInteger ddcId, byte[] data) throws Exception {
-        return safeTransferFrom(sender, from, to, ddcId, data, RequestOptions.builder(DDC721Service.class).build());
+        return safeTransferFrom(sender, from, to, ddcId, data, null);
     }
 
     /**
@@ -317,7 +319,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(data);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SAFE_TRANSFER_FROM);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SAFE_TRANSFER_FROM, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -334,7 +336,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String transferFrom(String sender, String from, String to, BigInteger ddcId) throws Exception {
-        return transferFrom(sender, from, to, ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return transferFrom(sender, from, to, ddcId, null);
     }
 
     /**
@@ -365,7 +367,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.TRANSFER_FROM);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.TRANSFER_FROM, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -381,7 +383,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String freeze(String sender, BigInteger ddcId) throws Exception {
-        return freeze(sender, ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return freeze(sender, ddcId, null);
     }
 
     /**
@@ -402,7 +404,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.FREEZE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.FREEZE, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -418,7 +420,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String unFreeze(String sender, BigInteger ddcId) throws Exception {
-        return unFreeze(sender, ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return unFreeze(sender, ddcId, null);
     }
 
     /**
@@ -440,7 +442,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.UNFREEZE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.UNFREEZE, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -454,7 +456,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String burn(String sender, BigInteger ddcId) throws Exception {
-        return burn(sender, ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return burn(sender, ddcId, null);
     }
 
     /**
@@ -475,7 +477,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.BURN);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.BURN, DDC721Contract);
 
         resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
@@ -489,7 +491,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String owner) throws Exception {
-        return balanceOf(owner, RequestOptions.builder(DDC721Service.class).build());
+        return balanceOf(owner, null);
     }
 
     /**
@@ -509,7 +511,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(owner);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.BALANCE_OF);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.BALANCE_OF, DDC721Contract);
 
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -522,7 +524,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String ownerOf(BigInteger ddcId) throws Exception {
-        return ownerOf(ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return ownerOf(ddcId, null);
     }
 
     /**
@@ -542,7 +544,7 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.OWNER_OF);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.OWNER_OF, DDC721Contract);
 
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
@@ -554,7 +556,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String name() throws Exception {
-        return name(RequestOptions.builder(DDC721Service.class).build());
+        return name(null);
     }
 
     /**
@@ -566,7 +568,7 @@ public class DDC721Service extends BaseService {
     public String name(RequestOptions options) throws Exception {
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC721Functions.NAME);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC721Functions.NAME, DDC721Contract);
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -577,7 +579,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String symbol() throws Exception {
-        return symbol(RequestOptions.builder(DDC721Service.class).build());
+        return symbol(null);
     }
 
     /**
@@ -588,7 +590,7 @@ public class DDC721Service extends BaseService {
      */
     public String symbol(RequestOptions options) throws Exception {
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC721Functions.SYMBOL);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC721Functions.SYMBOL, DDC721Contract);
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -599,7 +601,7 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String ddcURI(BigInteger ddcId) throws Exception {
-        return ddcURI(ddcId, RequestOptions.builder(DDC721Service.class).build());
+        return ddcURI(ddcId, null);
     }
 
     /**
@@ -618,9 +620,45 @@ public class DDC721Service extends BaseService {
         arrayList.add(ddcId);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.DDC_URI);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.DDC_URI, DDC721Contract);
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
 
+    /**
+     * 设置URI DDC拥有者和授权者可调用该方法
+     *
+     * @param sender
+     * @param ddcId
+     * @param ddcURI
+     * @return
+     * @throws Exception
+     */
+    public String setURI(String sender, BigInteger ddcId, String ddcURI) throws Exception {
+        return setURI(sender, ddcId, ddcURI, null);
+    }
+
+    /**
+     * 设置URI DDC拥有者和授权者可调用该方法
+     *
+     * @param sender
+     * @param ddcId
+     * @param ddcURI
+     * @return
+     * @throws Exception
+     */
+    public String setURI(String sender, BigInteger ddcId, String ddcURI, RequestOptions options) throws Exception {
+        checkDdcId(ddcId);
+        if (Strings.isEmpty(ddcURI)) {
+            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
+        }
+
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(ddcId);
+        arrayList.add(ddcURI);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SET_URI, DDC721Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
 
 }

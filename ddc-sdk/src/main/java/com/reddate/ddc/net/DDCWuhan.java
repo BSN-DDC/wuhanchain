@@ -9,10 +9,18 @@ public abstract class DDCWuhan {
     public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
     public static final int DEFAULT_READ_TIMEOUT = 80 * 1000;
 
+    public static final int CONNECTION_KEEP_ALIVE_TIME = 30 * 1000;
+    public static final int POOLING_CONNECTION_MANAGER_MAX_TOTAL = 1000;
+    public static final int POOLING_CONNECTION_MANAGER_MAX_PER_ROUTE = 3000;
+    public static final int POOLING_CONNECTION_MANAGER_VALIDATE_AFTER_INACTIVITY = 30 * 1000;
+    public static final int POOLING_CONNECTION_MANAGER_CLOSE_IDLE_CONNECTIONS = 30 * 1000;
+
     private static volatile String gatewayApiKey = null;
+    private static volatile String gatewayUrl = null;
     private static volatile int connectTimeout = -1;
     private static volatile int readTimeout = -1;
     private static volatile int maxNetworkRetries = 0;
+
 
     /**
      * Returns the gateway headers api-key
@@ -26,10 +34,28 @@ public abstract class DDCWuhan {
     /**
      * If key is enabled, this value needs to be set
      *
-     * @param  apiKey
+     * @param apiKey
      */
     public static void setGatewayApiKey(final String apiKey) {
         gatewayApiKey = apiKey;
+    }
+
+    /**
+     * Returns the gateway gatewayUrl
+     *
+     * @return gatewayUrl
+     */
+    public static String getGatewayUrl() {
+        return gatewayUrl;
+    }
+
+    /**
+     * Set gateway URL
+     *
+     * @param url
+     */
+    public static void setGatewayUrl(String url) {
+        gatewayUrl = url;
     }
 
 

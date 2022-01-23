@@ -17,6 +17,7 @@ import org.web3j.utils.Strings;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 import static java.lang.String.valueOf;
 
 /**
@@ -24,10 +25,10 @@ import static java.lang.String.valueOf;
  */
 public class AuthorityService extends BaseService {
 
-    public volatile static DDCContract ddcContract;
+    public volatile static DDCContract authorityContract;
 
-    public AuthorityService(DDCContract contractConfiguration) {
-        ddcContract = contractConfiguration;
+    public AuthorityService() {
+        authorityContract = DDCContracts.stream().filter(t -> t.getConfigType().equals("authority")).findFirst().orElse(null);
     }
 
     /**
@@ -42,7 +43,7 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public String addAccountByOperator(String sender, String account, String accName, String accDID, String leaderDID) throws Exception {
-        return addAccountByOperator(sender, account, accName, accDID, leaderDID, RequestOptions.builder(AuthorityService.class).build());
+        return addAccountByOperator(sender, account, accName, accDID, leaderDID, null);
     }
 
     /**
@@ -79,7 +80,7 @@ public class AuthorityService extends BaseService {
         arrayList.add(new Utf8String(leaderDID));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_ACCOUNT_BY_OPERATOR);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_ACCOUNT_BY_OPERATOR, authorityContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -93,7 +94,7 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public String delAccount(String sender, String account) throws Exception {
-        return delAccount(sender, account, RequestOptions.builder(AuthorityService.class).build());
+        return delAccount(sender, account, null);
     }
 
     /**
@@ -117,7 +118,7 @@ public class AuthorityService extends BaseService {
         arrayList.add(new Address(account));
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.DEL_ACCOUNT);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.DEL_ACCOUNT, authorityContract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -129,7 +130,7 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public AccountInfo getAccount(String account) throws Exception {
-        return getAccount(account, RequestOptions.builder(AuthorityService.class).build());
+        return getAccount(account, null);
     }
 
     /**
@@ -149,7 +150,7 @@ public class AuthorityService extends BaseService {
         arrayList.add(account);
 
         // send call tran and decode output
-        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, AuthorityFunctions.GET_ACCOUNT);
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, AuthorityFunctions.GET_ACCOUNT, authorityContract);
 
         AccountInfo accountInfo = new AccountInfo();
         accountInfo.setAccountDID(valueOf(inputAndOutputResult.getResult().get(0).getData()));
@@ -183,7 +184,7 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public String updateAccState(String sender, String account, AccountState state, boolean changePlatformState) throws Exception {
-        return updateAccState(sender, account, state, changePlatformState, RequestOptions.builder(AuthorityService.class).build());
+        return updateAccState(sender, account, state, changePlatformState, null);
     }
 
     /**
@@ -213,9 +214,50 @@ public class AuthorityService extends BaseService {
         arrayList.add(changePlatformState);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.UPDATE_ACCOUNT_STATE);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.UPDATE_ACCOUNT_STATE, authorityContract);
         return (String) respJsonRpcBean.getResult();
     }
 
+    /**
+     * 跨平台授权链账户转移DDC
+     *
+     * @param sender
+     * @param from
+     * @param to
+     * @param approved
+     * @return
+     * @throws Exception
+     */
+    public String crossPlatformApproval(String sender, String from, String to, boolean approved) throws Exception {
+        return crossPlatformApproval(sender, from, to, approved, null);
+    }
 
+    /**
+     * 跨平台授权链账户转移DDC
+     *
+     * @param sender
+     * @param from
+     * @param to
+     * @param approved
+     * @return
+     * @throws Exception
+     */
+    public String crossPlatformApproval(String sender, String from, String to, boolean approved, RequestOptions options) throws Exception {
+
+        // check sender
+        checkSender(sender);
+        // check from
+        checkFrom(from);
+        // check to
+        checkTo(to);
+
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(new Address(from));
+        arrayList.add(new Address(to));
+        arrayList.add(approved);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.CrossPlatformApproval, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
 }

@@ -1,8 +1,8 @@
 # wuhanchain java client library
 
 The SDK contains the following methods that the platform can call：
-
 ```
+
 3.2.1BSN-DDC-权限管理
     3.2.1.1查询账户
     3.2.1.2更新账户状态
@@ -153,8 +153,13 @@ public class SdkExampleTest {
     SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
     // ddcSdkClient instantiation
-    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance("src/main/resources/contractConfig.json", signEventListener);
+    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
+    // set gateway url
+    static {
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+    }
+    
     //  The address the transaction is send from.
     public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
@@ -208,45 +213,36 @@ public class SdkExampleTest {
 
 ### Configuration
 
-Please refer to：src/main/resources/contractConfig.json
-
-gasPrice,gasLimit,Nullable. It is recommended to configure to reduce the number of requests to the gateway.
-
-```
-{
-    "gateWayUrl":"",//gateWay Url
-    "gasPrice":"",// gasPrice
-    "gasLimit":"",// gasLimit
-    "contracts":[
-        {
-            "configType":"721",//corresponding contracts： 721、1155、charge、authority
-            "contractAbi":"",//contract ABI
-            "contractBytecode":"",//contract Bytecode
-            "contractAddress":""//contract address
-        },
-        ...
-    ]
-}
-```
-
-
-
 ### Per-request Configuration
 
 All of the request methods accept an optional `RequestOptions` object. This is used if you want to set the gateway address etc.
 
+gasPrice,gasLimit,Nullable. It is recommended to configure to reduce the number of requests to the gateway.
+
 ```java
-RequestOptions requestOptions = RequestOptions.builder()
-        .setGateWayUrl("http://********/rpc")
+// mint
+sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI");
+
+// use options mint
+RequestOptions options = RequestOptions.builder()
         .setGasLimit("1000000")
         .build();
-
-        sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",options);
+sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",options);
 ```
 
 
 
-### Configure gateway x-api-key
+### Configure gateway
+
+##### gateway URL
+
+gateway url must be set
+
+```
+DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+```
+
+##### x-api-key
 
 If you enable the project key in the BSN portal, it needs to be configured in the sdk,This configuration takes effect globally.
 
@@ -287,8 +283,7 @@ Or on a finer grain level using `RequestOptions`:
 
 ```
 RequestOptions requestOptions = RequestOptions.builder()
-    .setReadTimeout(10 * 1000) // in milliseconds
-    .setConnectTimeout(10 * 1000)
+    .setConnectTimeout(10 * 1000) // in milliseconds
     .build();
 ```
 
@@ -299,9 +294,9 @@ RequestOptions requestOptions = RequestOptions.builder()
 The default value of nonce is obtained from the gateway according to: signUserAddress in the configuration file. If calling frequently recommends local maintenance, use RequestOptions to pass this parameter.
 
 ```
-RequestOptions requestOptions = RequestOptions.builder().build();
+RequestOptions options = RequestOptions.builder().build();
 requestOptions.setNonce("2");
 
-sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",requestOptions);
+sdkClient.ddc721Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "ddcURI",options);
 ```
 

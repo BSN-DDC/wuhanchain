@@ -1,5 +1,6 @@
 package com.reddate.ddc.dto.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,10 +10,10 @@ import java.util.List;
  */
 public class BasicConfiguration extends Gateway {
 
-    private List<DDCContract> contracts;
+    private List<DDCContract> contracts = new ArrayList<>();
 
-    public void setContracts(List<DDCContract> contracts) {
-        this.contracts = contracts;
+    public void setContracts(DDCContract contracts) {
+        this.contracts.add(contracts);
     }
 
     public List<DDCContract> getContracts() {

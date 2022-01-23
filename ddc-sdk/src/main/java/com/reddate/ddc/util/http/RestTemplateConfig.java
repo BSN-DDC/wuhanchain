@@ -4,9 +4,15 @@ import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class RestTemplateConfig {
@@ -42,12 +49,11 @@ public class RestTemplateConfig {
                             clientHttpResponse.getStatusText(),
                             clientHttpResponse.getHeaders(),
                             convertStreamToString(clientHttpResponse.getBody()));
-                    throw new DDCException(ErrorMessage.REQUEST_FAILED.getCode(),result);
+                    throw new DDCException(ErrorMessage.REQUEST_FAILED.getCode(), result);
                 }
             }
         };
         restTemplate.setErrorHandler(responseErrorHandler);
-
         return restTemplate;
     }
 
@@ -56,6 +62,35 @@ public class RestTemplateConfig {
         factory.setConnectTimeout(DDCWuhan.getConnectTimeout());
         factory.setReadTimeout(DDCWuhan.getReadTimeout());
         return factory;
+    }
+
+    public ClientHttpRequestFactory clientHttpRequestFactory() {
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(DDCWuhan.getConnectTimeout());
+        clientHttpRequestFactory.setReadTimeout(DDCWuhan.getReadTimeout());
+        clientHttpRequestFactory.setHttpClient(httpClientBuilder().build());
+        return clientHttpRequestFactory;
+    }
+
+
+    private HttpClientBuilder httpClientBuilder() {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        httpClientBuilder.setConnectionManager(poolingConnectionManager());
+        ConnectionKeepAliveStrategy connectionKeepAliveStrategy = (httpResponse, httpContext) -> DDCWuhan.CONNECTION_KEEP_ALIVE_TIME;
+        httpClientBuilder.setKeepAliveStrategy(connectionKeepAliveStrategy);
+        httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler());
+        return httpClientBuilder;
+    }
+
+
+    public HttpClientConnectionManager poolingConnectionManager() {
+        PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+        poolingConnectionManager.setMaxTotal(DDCWuhan.POOLING_CONNECTION_MANAGER_MAX_TOTAL);
+        poolingConnectionManager.setDefaultMaxPerRoute(DDCWuhan.POOLING_CONNECTION_MANAGER_MAX_PER_ROUTE);
+        poolingConnectionManager.setValidateAfterInactivity(DDCWuhan.POOLING_CONNECTION_MANAGER_VALIDATE_AFTER_INACTIVITY);
+        poolingConnectionManager.closeIdleConnections(DDCWuhan.POOLING_CONNECTION_MANAGER_CLOSE_IDLE_CONNECTIONS, TimeUnit.SECONDS);
+        poolingConnectionManager.closeExpiredConnections();
+        return poolingConnectionManager;
     }
 
     private String convertStreamToString(InputStream is) {

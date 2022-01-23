@@ -25,7 +25,7 @@ public class RestTemplateUtil {
 
     public RestTemplateUtil() {
         RestTemplateConfig restTemplateConfig = new RestTemplateConfig();
-        restTemplate = restTemplateConfig.restTemplate(restTemplateConfig.simpleClientHttpRequestFactory());
+        restTemplate = restTemplateConfig.restTemplate(restTemplateConfig.clientHttpRequestFactory());
     }
 
     public static <T> T sendPost(String url, Object params, Class<T> t) throws RestClientException {
@@ -100,10 +100,12 @@ public class RestTemplateUtil {
         }
         HttpEntity entity = new HttpEntity<>(params, headers);
 
-        String url = options.getGateWayUrl();
+        String url = DDCWuhan.getGatewayUrl();
 
         if (Objects.nonNull(options)) {
-            return reTry(url, options.getConnectTimeout(), options.getNetworkRetries(), u -> restTemplate.postForEntity(u, entity, t).getBody());
+            long timeout = options.getConnectTimeout() != 0 ? options.getConnectTimeout() : DDCWuhan.getConnectTimeout();
+            int limit = options.getNetworkRetries() != 0 ? options.getNetworkRetries() : DDCWuhan.getMaxNetworkRetries();
+            return reTry(url, timeout, limit, u -> restTemplate.postForEntity(u, entity, t).getBody());
         }
         return restTemplate.postForEntity(url, entity, t).getBody();
     }
