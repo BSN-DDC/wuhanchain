@@ -190,7 +190,7 @@ public class SdkExampleTest {
     @Test
     void mintByOptions() throws Exception {
         RequestOptions options = RequestOptions.builder(DDC721Service.class)
-                .setGateWayUrl("http://********/rpc")
+                .setNetworkRetries(2)
                 .build();
 
         String tx = sdkClient.ddc1155Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec523391", BigInteger.TEN, "ddcURL", options);
