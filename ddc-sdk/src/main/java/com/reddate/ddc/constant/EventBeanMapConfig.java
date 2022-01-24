@@ -13,28 +13,28 @@ public class EventBeanMapConfig {
     /**
      * eventBeanMap
      */
-    public final static HashMap<String, Class> eventBeanMapNew = new HashMap<>();
+    public final static HashMap<String, Class> eventBeanMap = new HashMap<>();
 
     static {
 
         // event entity binding
-        eventBeanMapNew.put(AuthorityFunctions.ADD_ACCOUNT_EVENT, AddAccountEventBean.class);
-        eventBeanMapNew.put(AuthorityFunctions.UPDATE_ACCOUNT_STATE_EVENT, UpdateAccountStateEventBean.class);
+        eventBeanMap.put(AuthorityFunctions.ADD_ACCOUNT_EVENT, AddAccountEventBean.class);
+        eventBeanMap.put(AuthorityFunctions.UPDATE_ACCOUNT_STATE_EVENT, UpdateAccountStateEventBean.class);
 
-        eventBeanMapNew.put(ChargeFunctions.RECHARGE_EVENT, ReChargeEventBean.class);
-        eventBeanMapNew.put(ChargeFunctions.PAY_EVENT, PayEventBean.class);
-        eventBeanMapNew.put(ChargeFunctions.SET_FEE_EVENT, SetFeeEventBean.class);
-        eventBeanMapNew.put(ChargeFunctions.DELETE_FEE_EVENT, DeleteFeeEventBean.class);
-        eventBeanMapNew.put(ChargeFunctions.DELETE_DDC_EVENT, DeleteDDCEventBean.class);
+        eventBeanMap.put(ChargeFunctions.RECHARGE_EVENT, ReChargeEventBean.class);
+        eventBeanMap.put(ChargeFunctions.PAY_EVENT, PayEventBean.class);
+        eventBeanMap.put(ChargeFunctions.SET_FEE_EVENT, SetFeeEventBean.class);
+        eventBeanMap.put(ChargeFunctions.DELETE_FEE_EVENT, DeleteFeeEventBean.class);
+        eventBeanMap.put(ChargeFunctions.DELETE_DDC_EVENT, DeleteDDCEventBean.class);
 
-        eventBeanMapNew.put(DDC721Functions.DDC_721_TRANSFER_EVENT, DDC721TransferEventBean.class);
-        eventBeanMapNew.put(DDC721Functions.DDC_721_FREEZE_EVENT, DDC721FreezeEventBean.class);
-        eventBeanMapNew.put(DDC721Functions.DDC_721_UNFREEZE_EVENT, DDC721UnFreezeEventBean.class);
+        eventBeanMap.put(DDC721Functions.DDC_721_TRANSFER_EVENT, DDC721TransferEventBean.class);
+        eventBeanMap.put(DDC721Functions.DDC_721_FREEZE_EVENT, DDC721FreezeEventBean.class);
+        eventBeanMap.put(DDC721Functions.DDC_721_UNFREEZE_EVENT, DDC721UnFreezeEventBean.class);
 
-        eventBeanMapNew.put(DDC1155Functions.DDC_1155_TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
-        eventBeanMapNew.put(DDC1155Functions.DDC_1155_TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);
-        eventBeanMapNew.put(DDC1155Functions.DDC_1155_FREEZE_EVENT, DDC1155FreezeEventBean.class);
-        eventBeanMapNew.put(DDC1155Functions.DDC_1155_UNFREEZE_EVENT, DDC1155UnFreezeEventBean.class);
+        eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
+        eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);
+        eventBeanMap.put(DDC1155Functions.DDC_1155_FREEZE_EVENT, DDC1155FreezeEventBean.class);
+        eventBeanMap.put(DDC1155Functions.DDC_1155_UNFREEZE_EVENT, DDC1155UnFreezeEventBean.class);
 
     }
 }

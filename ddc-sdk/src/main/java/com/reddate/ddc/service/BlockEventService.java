@@ -1,9 +1,9 @@
 package com.reddate.ddc.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.reddate.ddc.constant.*;
+import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.dto.config.DDCContract;
-import com.reddate.ddc.dto.ddc.*;
+import com.reddate.ddc.dto.ddc.BaseEventBean;
 import com.reddate.ddc.dto.wuhanchain.BlockBean;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
@@ -17,10 +17,13 @@ import org.web3j.utils.Strings;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
-import static com.reddate.ddc.constant.EventBeanMapConfig.eventBeanMapNew;
+import static com.reddate.ddc.constant.EventBeanMapConfig.eventBeanMap;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.analyzeEventLog;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 
@@ -80,10 +83,10 @@ public class BlockEventService extends BaseService {
                 logInfo.add(log);
                 Map<String, List<List<EventResultEntity>>> map = analyzeEventLog(contractAbi, contractByteCode, JSONObject.toJSONString(logInfo));
                 // Event to Object
-                if (eventBeanMapNew.isEmpty()){
+                if (eventBeanMap.isEmpty()){
                     throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
                 }
-                for (Map.Entry<String, Class> entry : eventBeanMapNew.entrySet()) {
+                for (Map.Entry<String, Class> entry : eventBeanMap.entrySet()) {
                     if (!map.containsKey(entry.getKey())) {
                         continue;
                     }
