@@ -13,12 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Strings;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.*;
 
 import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
+import static com.reddate.ddc.constant.EventBeanMapConfig.eventBeanMapNew;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.analyzeEventLog;
 import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 
@@ -30,35 +32,15 @@ import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 public class BlockEventService extends BaseService {
     private final Logger logger = LoggerFactory.getLogger(BlockEventService.class);
 
+
     /**
-     * eventBeanMap
+     * get block event
+     *
+     * @param blockNum blockNumber
+     * @param <T>
+     * @return ddc official contract event data
+     * @throws Exception
      */
-    private HashMap<String, Class> eventBeanMap = new HashMap<>();
-
-    public BlockEventService() {
-
-        // event entity binding
-        eventBeanMap.put(AuthorityFunctions.ADD_ACCOUNT_EVENT, AddAccountEventBean.class);
-        eventBeanMap.put(AuthorityFunctions.UPDATE_ACCOUNT_STATE_EVENT, UpdateAccountStateEventBean.class);
-
-        eventBeanMap.put(ChargeFunctions.RECHARGE_EVENT, ReChargeEventBean.class);
-        eventBeanMap.put(ChargeFunctions.PAY_EVENT, PayEventBean.class);
-        eventBeanMap.put(ChargeFunctions.SET_FEE_EVENT, SetFeeEventBean.class);
-        eventBeanMap.put(ChargeFunctions.DELETE_FEE_EVENT, DeleteFeeEventBean.class);
-        eventBeanMap.put(ChargeFunctions.DELETE_DDC_EVENT, DeleteDDCEventBean.class);
-
-        eventBeanMap.put(DDC721Functions.DDC_721_TRANSFER_EVENT, DDC721TransferEventBean.class);
-        eventBeanMap.put(DDC721Functions.DDC_721_FREEZE_EVENT, DDC721FreezeEventBean.class);
-        eventBeanMap.put(DDC721Functions.DDC_721_UNFREEZE_EVENT, DDC721UnFreezeEventBean.class);
-
-        eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
-        eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);
-        eventBeanMap.put(DDC1155Functions.DDC_1155_FREEZE_EVENT, DDC1155FreezeEventBean.class);
-        eventBeanMap.put(DDC1155Functions.DDC_1155_UNFREEZE_EVENT, DDC1155UnFreezeEventBean.class);
-
-    }
-
-
     public <T extends BaseEventBean> ArrayList<T> getBlockEvent(BigInteger blockNum) throws Exception {
         // get block
         RespJsonRpcBean respJsonRpcBean = getBlockByNumber(blockNum);
@@ -84,17 +66,24 @@ public class BlockEventService extends BaseService {
                 // Get the contract for this event
                 DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(log.getAddress())).findAny().orElse(null);
                 if (Objects.isNull(contract)) {
-                    logger.info(String.format("BlockNum:%s,Contract:%s,非DDC官方合约不统计数据...", blockNum, log.getAddress()));
+                    logger.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data...", transaction.getBlockNumber(), log.getAddress()));
                     continue;
                 }
+                // contract info
                 String contractAbi = contract.getContractAbi();
                 String contractByteCode = contract.getContractBytecode();
+                if (Strings.isEmpty(contractAbi) || Strings.isEmpty(contractByteCode)) {
+                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                }
 
                 List<Log> logInfo = new ArrayList<>();
                 logInfo.add(log);
                 Map<String, List<List<EventResultEntity>>> map = analyzeEventLog(contractAbi, contractByteCode, JSONObject.toJSONString(logInfo));
                 // Event to Object
-                for (Map.Entry<String, Class> entry : eventBeanMap.entrySet()) {
+                if (eventBeanMapNew.isEmpty()){
+                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                }
+                for (Map.Entry<String, Class> entry : eventBeanMapNew.entrySet()) {
                     if (!map.containsKey(entry.getKey())) {
                         continue;
                     }

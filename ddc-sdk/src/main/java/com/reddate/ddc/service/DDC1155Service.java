@@ -18,12 +18,15 @@ import java.util.stream.Collectors;
 
 import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 
-
+/**
+ * ddc 1155
+ * @author wxq
+ */
 public class DDC1155Service extends BaseService {
     public volatile static DDCContract DDC1155Contract;
 
     public DDC1155Service() {
-        DDC1155Contract = DDCContracts.stream().filter(t -> t.getConfigType().equals("1155")).findFirst().orElse(null);
+        DDC1155Contract = DDCContracts.stream().filter(t -> "1155".equals(t.getConfigType())).findFirst().orElse(null);
     }
 
     /**

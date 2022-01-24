@@ -27,7 +27,7 @@ class BlockEventServiceTest {
     @Test
     void getBlockEvent() throws Exception {
         ArrayList<Object> result = new ArrayList<>();
-        result.addAll(ddcSdkClient.blockEventService.getBlockEvent(new BigInteger("866492")));
+        result.addAll(ddcSdkClient.blockEventService.getBlockEvent(new BigInteger("873525")));
         log.info(JSON.toJSONString(result));
 
         result.forEach(t -> {

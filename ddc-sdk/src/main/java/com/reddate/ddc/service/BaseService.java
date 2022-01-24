@@ -30,8 +30,11 @@ import org.fisco.bcos.web3j.tx.txdecode.BaseException;
 import org.fisco.bcos.web3j.tx.txdecode.ContractAbiUtil;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Numeric;
 import org.web3j.utils.Strings;
@@ -39,6 +42,8 @@ import org.web3j.utils.Strings;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
+
+import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 
 @Slf4j
 public class BaseService extends RestTemplateUtil {
@@ -49,7 +54,7 @@ public class BaseService extends RestTemplateUtil {
         // config check
         checkRequestOptions(requestOptions);
 
-        if (Objects.isNull(contract)){
+        if (Objects.isNull(contract)) {
             throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
         }
 
@@ -618,5 +623,16 @@ public class BaseService extends RestTemplateUtil {
         if (Strings.isEmpty(accountName)) {
             throw new DDCException(ErrorMessage.ACCOUNT_NAME_IS_EMPTY);
         }
+    }
+
+    @Nullable
+    public DDCContract getDdcContract(EthBlock.TransactionObject transaction, Log eventLog) {
+        // Get the contract for this event
+        DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(eventLog.getAddress())).findAny().orElse(null);
+        if (Objects.isNull(contract)) {
+            log.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data...", transaction.getBlockNumber(), eventLog.getAddress()));
+            return null;
+        }
+        return contract;
     }
 }

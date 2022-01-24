@@ -21,14 +21,15 @@ import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 import static java.lang.String.valueOf;
 
 /**
- * Authority Service
+ * ddc authority
+ * @author wxq
  */
 public class AuthorityService extends BaseService {
 
     public volatile static DDCContract authorityContract;
 
     public AuthorityService() {
-        authorityContract = DDCContracts.stream().filter(t -> t.getConfigType().equals("authority")).findFirst().orElse(null);
+        authorityContract = DDCContracts.stream().filter(t -> "authority".equals(t.getConfigType())).findFirst().orElse(null);
     }
 
     /**

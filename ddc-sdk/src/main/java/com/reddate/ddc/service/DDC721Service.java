@@ -17,6 +17,7 @@ import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 
 
 /**
+ * ddc 721
  * @author wxq
  */
 public class DDC721Service extends BaseService {
@@ -24,7 +25,7 @@ public class DDC721Service extends BaseService {
     public volatile static DDCContract DDC721Contract;
 
     public DDC721Service() {
-        DDC721Contract = DDCContracts.stream().filter(t -> t.getConfigType().equals("721")).findFirst().orElse(null);
+        DDC721Contract = DDCContracts.stream().filter(t -> "721".equals(t.getConfigType())).findFirst().orElse(null);
     }
 
     /**

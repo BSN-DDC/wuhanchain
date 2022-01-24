@@ -174,7 +174,7 @@ public class SdkExampleTest {
     }
 
     /**
-     * DDC mint
+     * DDC721 mint
      * @throws Exception
      */
     @Test
@@ -183,18 +183,35 @@ public class SdkExampleTest {
         assertNotNull(tx);
     }
 
-    /**
-     * DDC mint by options
+	 /**
+     * DDC1155 safeMint
      * @throws Exception
-     */
+     */    
     @Test
-    void mintByOptions() throws Exception {
-        RequestOptions options = RequestOptions.builder(DDC721Service.class)
-                .setNetworkRetries(2)
-                .build();
+    void safeMint() throws Exception {
 
-        String tx = sdkClient.ddc1155Service.mint("0x019ba4600e117f06e3726c0b100a2f10ec523391", BigInteger.TEN, "ddcURL", options);
+        byte[] data = new byte[1];
+        data[0] = 1;
+        String tx = ddcSdkClient.ddc1155Service.safeMint(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", BigInteger.TEN, "Token-R88821", data);
+        log.info(tx);
         assertNotNull(tx);
+        
+        while (true) {
+            Thread.sleep(5000 * 2);
+            TransactionReceipt transactionRecepitBean = ddcSdkClient.ddc1155Service.getTransactionReceipt(tx);
+            if (transactionRecepitBean == null) {
+                continue;
+            }
+            BlockEventService blockEventService = new BlockEventService();
+            ArrayList result = blockEventService.getBlockEvent(transactionRecepitBean.getBlockNumber());
+            result.forEach(t -> {
+                if (t instanceof DDC1155TransferSingleEventBean) {
+                    log.info("{}:DDCID {}", t.getClass(), ((DDC1155TransferSingleEventBean) t).getDdcId());
+                }
+            });
+            break;
+        }
+
     }
 
     /**
