@@ -16,11 +16,12 @@ import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
 
 /**
  * ddc charge
+ *
  * @author wxq
  */
 public class ChargeService extends BaseService {
 
-    public volatile static DDCContract chargeContract;
+    public static DDCContract chargeContract;
 
     public ChargeService() {
         chargeContract = DDCContracts.stream().filter(t -> "charge".equals(t.getConfigType())).findFirst().orElse(null);

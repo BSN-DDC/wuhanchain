@@ -22,11 +22,12 @@ import static java.lang.String.valueOf;
 
 /**
  * ddc authority
+ *
  * @author wxq
  */
 public class AuthorityService extends BaseService {
 
-    public volatile static DDCContract authorityContract;
+    public static DDCContract authorityContract;
 
     public AuthorityService() {
         authorityContract = DDCContracts.stream().filter(t -> "authority".equals(t.getConfigType())).findFirst().orElse(null);

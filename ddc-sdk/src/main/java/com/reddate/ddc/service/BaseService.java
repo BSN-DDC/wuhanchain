@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.constant.EthFunctions;
 import com.reddate.ddc.dto.config.DDCContract;
+import com.reddate.ddc.dto.ddc.BaseEventBean;
 import com.reddate.ddc.dto.wuhanchain.ReqJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
@@ -28,9 +29,11 @@ import org.fisco.bcos.web3j.tx.AbiUtil;
 import org.fisco.bcos.web3j.tx.TransactionAssembleException;
 import org.fisco.bcos.web3j.tx.txdecode.BaseException;
 import org.fisco.bcos.web3j.tx.txdecode.ContractAbiUtil;
+import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -40,15 +43,19 @@ import org.web3j.utils.Numeric;
 import org.web3j.utils.Strings;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.*;
 
 import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
+import static com.reddate.ddc.constant.EventBeanMapConfig.eventBeanMap;
+import static com.reddate.ddc.util.AnalyzeChainInfoUtils.analyzeEventLog;
+import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 
 @Slf4j
 public class BaseService extends RestTemplateUtil {
-
-    public volatile static SignEventListener signEventListener;
+    private final Logger logger = LoggerFactory.getLogger(BaseService.class);
+    public static SignEventListener signEventListener;
 
     public ReqJsonRpcBean assembleTransaction(String sender, String functionName, ArrayList<Object> params, RequestOptions requestOptions, DDCContract contract) throws Exception {
         // config check
@@ -625,14 +632,68 @@ public class BaseService extends RestTemplateUtil {
         }
     }
 
-    @Nullable
-    public DDCContract getDdcContract(EthBlock.TransactionObject transaction, Log eventLog) {
-        // Get the contract for this event
-        DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(eventLog.getAddress())).findAny().orElse(null);
-        if (Objects.isNull(contract)) {
-            log.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data...", transaction.getBlockNumber(), eventLog.getAddress()));
-            return null;
+    /**
+     * Analyze transaction data
+     * @param txTimestamp
+     * @param transactions
+     * @param arrayList
+     * @param <T>
+     * @throws Exception
+     */
+    public <T extends BaseEventBean> void transactionData(BigInteger txTimestamp, List<EthBlock.TransactionResult> transactions, ArrayList<T> arrayList) throws Exception {
+        for (EthBlock.TransactionResult<EthBlock.TransactionObject> transactionResult : transactions) {
+            EthBlock.TransactionObject transaction = transactionResult.get();
+            TransactionReceipt receipt = getTransactionReceipt(transaction.getHash());
+            if (Objects.isNull(receipt)) {
+                throw new DDCException(ErrorMessage.GET_TRANSACTION_RECEIPT_ERROR);
+            }
+            List<Log> logList = receipt.getLogs();
+            for (Log log : logList) {
+                // Get the contract for this event
+                DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(log.getAddress())).findAny().orElse(null);
+                if (Objects.isNull(contract)) {
+                    logger.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data...", transaction.getBlockNumber(), log.getAddress()));
+                    continue;
+                }
+                // contract info
+                String contractAbi = contract.getContractAbi();
+                String contractByteCode = contract.getContractBytecode();
+                if (Strings.isEmpty(contractAbi) || Strings.isEmpty(contractByteCode)) {
+                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                }
+
+                List<Log> logInfo = new ArrayList<>();
+                logInfo.add(log);
+                Map<String, List<List<EventResultEntity>>> map = analyzeEventLog(contractAbi, contractByteCode, JSONObject.toJSONString(logInfo));
+                // Event to Object
+                if (eventBeanMap.isEmpty()) {
+                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                }
+                for (Map.Entry<String, Class> entry : eventBeanMap.entrySet()) {
+                    if (!map.containsKey(entry.getKey())) {
+                        continue;
+                    }
+
+                    List<List<EventResultEntity>> eventLists = map.get(entry.getKey());
+                    for (List<EventResultEntity> eventList : eventLists) {
+                        try {
+                            T eventBean = (T) assembleBeanByReflect(eventList, entry.getValue());
+                            eventBean.setBlockHash(transaction.getHash());
+                            eventBean.setTransactionInfoBean(transaction);
+                            eventBean.setBlockNumber(transaction.getBlockNumber().toString());
+                            eventBean.setTimestamp(txTimestamp + "000");
+                            arrayList.add(eventBean);
+                        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
+                            e.printStackTrace();
+                            try {
+                                throw e;
+                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return contract;
     }
 }

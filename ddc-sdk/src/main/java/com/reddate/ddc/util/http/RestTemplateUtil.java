@@ -1,6 +1,8 @@
 package com.reddate.ddc.util.http;
 
 import com.alibaba.fastjson.JSONObject;
+import com.reddate.ddc.constant.ErrorMessage;
+import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.DDCWuhan;
 import com.reddate.ddc.net.RequestOptions;
 import lombok.extern.slf4j.Slf4j;
@@ -101,7 +103,9 @@ public class RestTemplateUtil {
         HttpEntity entity = new HttpEntity<>(params, headers);
 
         String url = DDCWuhan.getGatewayUrl();
-
+        if (Strings.isEmpty(url)) {
+            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
+        }
         if (Objects.nonNull(options)) {
             long timeout = options.getConnectTimeout() != 0 ? options.getConnectTimeout() : DDCWuhan.getConnectTimeout();
             int limit = options.getNetworkRetries() != 0 ? options.getNetworkRetries() : DDCWuhan.getMaxNetworkRetries();

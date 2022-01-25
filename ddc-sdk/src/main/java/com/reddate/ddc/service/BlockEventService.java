@@ -1,31 +1,21 @@
 package com.reddate.ddc.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.reddate.ddc.constant.ErrorMessage;
-import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.ddc.BaseEventBean;
-import com.reddate.ddc.dto.wuhanchain.BlockBean;
-import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
-import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
 import com.reddate.ddc.exception.DDCException;
-import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
+import com.reddate.ddc.net.DDCWuhan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Strings;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-
-import static com.reddate.ddc.constant.ContractConfig.DDCContracts;
-import static com.reddate.ddc.constant.EventBeanMapConfig.eventBeanMap;
-import static com.reddate.ddc.util.AnalyzeChainInfoUtils.analyzeEventLog;
-import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 
 /**
  * @author wxq
@@ -35,6 +25,10 @@ import static com.reddate.ddc.util.AnalyzeChainInfoUtils.assembleBeanByReflect;
 public class BlockEventService extends BaseService {
     private final Logger logger = LoggerFactory.getLogger(BlockEventService.class);
 
+    /**
+     * web3j
+     */
+    private static Web3j web3j = null;
 
     /**
      * get block event
@@ -45,73 +39,28 @@ public class BlockEventService extends BaseService {
      * @throws Exception
      */
     public <T extends BaseEventBean> ArrayList<T> getBlockEvent(BigInteger blockNum) throws Exception {
+        if (Strings.isEmpty(DDCWuhan.getGatewayUrl())) {
+            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
+        }
+        web3j = Web3j.build(new HttpService(DDCWuhan.getGatewayUrl()));
+        if (Objects.isNull(web3j)) {
+            throw new DDCException(ErrorMessage.REQUEST_FAILED);
+        }
         // get block
-        RespJsonRpcBean respJsonRpcBean = getBlockByNumber(blockNum);
-        BlockBean ethBlock = JSONObject.parseObject(JSONObject.toJSONString(respJsonRpcBean.getResult()), BlockBean.class);
+        EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNum), true).send();
         if (Objects.isNull(ethBlock)) {
             throw new DDCException(ErrorMessage.GET_BLOCK_BY_NUMBER_ERROR);
         }
 
         // get tx time
-        String txTimestamp = ethBlock.getTimestamp();
-        List<TransactionsBean> transactions = ethBlock.getTransactions();
+        BigInteger txTimestamp = ethBlock.getBlock().getTimestamp();
+        List<EthBlock.TransactionResult> transactions = ethBlock.getBlock().getTransactions();
 
         // response
         ArrayList<T> arrayList = new ArrayList<>();
-        for (TransactionsBean transaction : transactions) {
-
-            TransactionReceipt receipt = getTransactionReceipt(transaction.getHash());
-            if (Objects.isNull(receipt)) {
-                throw new DDCException(ErrorMessage.GET_TRANSACTION_RECEIPT_ERROR);
-            }
-            List<Log> logList = receipt.getLogs();
-            for (Log log : logList) {
-                // Get the contract for this event
-                DDCContract contract = DDCContracts.stream().filter(t -> t.getContractAddress().equalsIgnoreCase(log.getAddress())).findAny().orElse(null);
-                if (Objects.isNull(contract)) {
-                    logger.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data...", transaction.getBlockNumber(), log.getAddress()));
-                    continue;
-                }
-                // contract info
-                String contractAbi = contract.getContractAbi();
-                String contractByteCode = contract.getContractBytecode();
-                if (Strings.isEmpty(contractAbi) || Strings.isEmpty(contractByteCode)) {
-                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
-                }
-
-                List<Log> logInfo = new ArrayList<>();
-                logInfo.add(log);
-                Map<String, List<List<EventResultEntity>>> map = analyzeEventLog(contractAbi, contractByteCode, JSONObject.toJSONString(logInfo));
-                // Event to Object
-                if (eventBeanMap.isEmpty()){
-                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
-                }
-                for (Map.Entry<String, Class> entry : eventBeanMap.entrySet()) {
-                    if (!map.containsKey(entry.getKey())) {
-                        continue;
-                    }
-
-                    List<List<EventResultEntity>> eventLists = map.get(entry.getKey());
-                    for (List<EventResultEntity> eventList : eventLists) {
-                        try {
-                            T eventBean = (T) assembleBeanByReflect(eventList, entry.getValue());
-                            eventBean.setBlockHash(transaction.getHash());
-                            eventBean.setTransactionInfoBean(transaction);
-                            eventBean.setBlockNumber(transaction.getBlockNumber());
-                            eventBean.setTimestamp(txTimestamp);
-                            arrayList.add(eventBean);
-                        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-                            e.printStackTrace();
-                            try {
-                                throw e;
-                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        transactionData(txTimestamp, transactions, arrayList);
         return arrayList;
     }
+
+
 }
