@@ -53,7 +53,7 @@ The SDK contains the following methods that the platform can call：
 3.2.8BSN-DDC-数据解析
 
     3.2.8.1权限数据
-        3.2.8.1.1添加账户
+        3.2.8.1.1查询账户
         3.2.8.1.2更新账户状态
 
     3.2.8.2充值数据
