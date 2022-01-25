@@ -20,6 +20,7 @@ class BlockEventServiceTest {
     // ddcSdkClient instantiation
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
+    // set gateway url
     static {
         DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
     }

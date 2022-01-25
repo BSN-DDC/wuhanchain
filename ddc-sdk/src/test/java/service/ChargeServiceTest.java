@@ -25,17 +25,18 @@ public class ChargeServiceTest {
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
     //  The address the transaction is send from.
-    public String sender = "0x3a0427c496c7e9408885d132e9fec0b042beb399";
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
+    // set gateway url
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d895422b6b70de34c854si5dd/rpc");
     }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
         //sender privateKey
-        String privateKey = "0x8f9d8a1619e35892cd36acba0150fd3e2aac8a20865eff75b2500ea7661a1076";
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);

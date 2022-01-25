@@ -31,17 +31,18 @@ class DDC1155ServiceTest {
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
     //  The address the transaction is send from.
-    public String sender = "0x3a0427c496c7e9408885d132e9fec0b042beb399";
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
+    // set gateway url
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d895422b6b70de34c854si5dd/rpc");
     }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
         //sender privateKey
-        String privateKey = "0x8f9d8a1619e35892cd36acba0150fd3e2aac8a20865eff75b2500ea7661a1076";
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -52,7 +53,7 @@ class DDC1155ServiceTest {
     void safeMint() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = ddcSdkClient.ddc1155Service.safeMint(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", BigInteger.TEN, "Token-R88821", data);
+        String tx = ddcSdkClient.ddc1155Service.safeMint(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", BigInteger.TEN, "Token-R88821", data);
         log.info(tx);
         assertNotNull(tx);
     }
@@ -66,7 +67,7 @@ class DDC1155ServiceTest {
             map.put(new BigInteger("11"), "11");
             map.put(new BigInteger("22"), "12");
 
-            String tx = ddcSdkClient.ddc1155Service.safeMintBatch(sender, "0xb8988d0f53cca1c0e14c7bf591db7f9f0f2eb7ca", map, data);
+            String tx = ddcSdkClient.ddc1155Service.safeMintBatch(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", map, data);
             log.info(tx);
             assertNotNull(tx);
         } catch (DDCException e) {
@@ -77,7 +78,7 @@ class DDC1155ServiceTest {
 
     @Test
     void setApprovalForAll() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.setApprovalForAll(sender, "0x4655399c9c082304fe7a0af145c490f52d87d732", true);
+        String tx = ddcSdkClient.ddc1155Service.setApprovalForAll(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", true);
         log.info(tx);
         assertNotNull(tx);
 
@@ -85,7 +86,7 @@ class DDC1155ServiceTest {
 
     @Test
     void isApprovedForAll() throws Exception {
-        Boolean tx = ddcSdkClient.ddc1155Service.isApprovedForAll("0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732");
+        Boolean tx = ddcSdkClient.ddc1155Service.isApprovedForAll("0x24a95d34dcbc74f714031a70b077e0abb3308088", "0x4655399c9c082304fe7a0af145c490f52d87d732");
         log.info(String.valueOf(tx));
         assertNotNull(tx);
     }
@@ -94,7 +95,7 @@ class DDC1155ServiceTest {
     void safeTransferFrom() throws Exception {
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = ddcSdkClient.ddc1155Service.safeTransferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", new BigInteger("8"), new BigInteger("1"), data);
+        String tx = ddcSdkClient.ddc1155Service.safeTransferFrom(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", "0x4655399c9c082304fe7a0af145c490f52d87d732", new BigInteger("8"), new BigInteger("1"), data);
         log.info(tx);
         assertNotNull(tx);
     }
@@ -109,7 +110,7 @@ class DDC1155ServiceTest {
 
         Map<BigInteger, BigInteger> ddcInfos = new HashMap<>();
         ddcInfos.put(new BigInteger("7"), new BigInteger("1"));
-        String tx = ddcSdkClient.ddc1155Service.safeBatchTransferFrom(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", "0x4655399c9c082304fe7a0af145c490f52d87d732", ddcInfos, datas);
+        String tx = ddcSdkClient.ddc1155Service.safeBatchTransferFrom(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", "0x4655399c9c082304fe7a0af145c490f52d87d732", ddcInfos, datas);
         log.info(tx);
         assertNotNull(tx);
     }
@@ -130,7 +131,7 @@ class DDC1155ServiceTest {
 
     @Test
     void burn() throws Exception {
-        String tx = ddcSdkClient.ddc1155Service.burn(sender, "0x24a95d34dcbc74f714031a70b077e0abb3306066", new BigInteger("203"));
+        String tx = ddcSdkClient.ddc1155Service.burn(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", new BigInteger("203"));
         log.info(tx);
         assertNotNull(tx);
     }
@@ -141,14 +142,14 @@ class DDC1155ServiceTest {
         arrayList.add(new BigInteger("6"));
         arrayList.add(new BigInteger("7"));
 
-        String tx = ddcSdkClient.ddc1155Service.burnBatch(sender, "0x019ba4600e117f06e3726c0b100a2f10ec52339e", arrayList);
+        String tx = ddcSdkClient.ddc1155Service.burnBatch(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", arrayList);
         log.info(tx);
         assertNotNull(tx);
     }
 
     @Test
     void balanceOf() throws Exception {
-        BigInteger bigInteger = ddcSdkClient.ddc1155Service.balanceOf("0x019ba4600e117f06e3726c0b100a2f10ec52339e", new BigInteger("1"));
+        BigInteger bigInteger = ddcSdkClient.ddc1155Service.balanceOf("0x24a95d34dcbc74f714031a70b077e0abb3308088", new BigInteger("1"));
         log.info(bigInteger.toString());
         assertNotNull(bigInteger);
     }
@@ -157,7 +158,7 @@ class DDC1155ServiceTest {
     void balanceOfBatch() throws Exception {
         Multimap<String, BigInteger> map = ArrayListMultimap.create();
         for (int i = 82; i < 85; i++) {
-            map.put("0x9dff125d6562df4d72b9bd4616c815a2b45c39ab", new BigInteger(String.valueOf(i)));
+            map.put("0x24a95d34dcbc74f714031a70b077e0abb3308088", new BigInteger(String.valueOf(i)));
         }
 
         List<BigInteger> bigIntegerList = ddcSdkClient.ddc1155Service.balanceOfBatch(map);

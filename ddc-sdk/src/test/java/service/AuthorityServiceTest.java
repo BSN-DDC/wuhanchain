@@ -26,17 +26,18 @@ public class AuthorityServiceTest {
     DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
 
     //  The address the transaction is send from.
-    public String sender = "0x3a0427c496c7e9408885d132e9fec0b042beb399";
+    public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
+    // set gateway url
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d895422b6b70de34c854si5dd/rpc");
     }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
         //sender privateKey
-        String privateKey = "0x8f9d8a1619e35892cd36acba0150fd3e2aac8a20865eff75b2500ea7661a1076";
+        String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -47,8 +48,8 @@ public class AuthorityServiceTest {
     public void addAccountByOperator() throws Exception {
 
         try {
-            String account = "0x154ebd1dc5832a521eac43bc982005ddd76eb73e";
-            String accountName = "ces2211";
+            String account = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
+            String accountName = "bsn-ddc";
             String accountDID = "did:bsn:123456112211";
             String leaderDID = "";
             String txHash = ddcSdkClient.authorityService.addAccountByOperator(sender, account, accountName, accountDID, leaderDID);
@@ -61,7 +62,7 @@ public class AuthorityServiceTest {
 
     @Test
     public void getAccount() throws Exception {
-        AccountInfo accountInfo = ddcSdkClient.authorityService.getAccount("0x36fa15b35667eb407a60e05cb16b8b7b306cef1a");
+        AccountInfo accountInfo = ddcSdkClient.authorityService.getAccount("0x24a95d34dcbc74f714031a70b077e0abb3308088");
         assertNotNull(accountInfo);
         log.info(JSONObject.toJSONString(accountInfo));
     }
@@ -69,7 +70,7 @@ public class AuthorityServiceTest {
 
     @Test
     public void updateAccState() throws Exception {
-        String account = "0xa7ae002e653239f1c16817bd5d5bebc3fd1d30b3";
+        String account = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
         String txHash = ddcSdkClient.authorityService.updateAccState(sender, account, AccountState.Active, false);
         assertNotNull(txHash);
@@ -80,7 +81,7 @@ public class AuthorityServiceTest {
     @Test
     public void crossPlatformApproval() throws Exception {
 
-        String txHash = ddcSdkClient.authorityService.crossPlatformApproval(sender, "0xa7ae002e653239f1c16817bd5d5bebc3fd1d30b3", "0xa7ae002e653239f1c16817bd5d5bebc3fd1d30b3", false);
+        String txHash = ddcSdkClient.authorityService.crossPlatformApproval(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", "0x24a95d34dcbc74f714031a70b077e0abb3306066", false);
         assertNotNull(txHash);
         log.info(txHash);
     }
