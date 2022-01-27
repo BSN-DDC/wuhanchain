@@ -166,9 +166,15 @@ public class SdkExampleTest {
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the privateKey according to the sender and complete its signature
 
-        //sender privateKey
+        // sender privateKey
         String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
+        
+         /**
+         * 5555
+         * wuhanchain id,call example
+         * curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
+         */
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
     }
