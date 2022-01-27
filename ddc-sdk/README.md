@@ -77,7 +77,7 @@ public class SdkExampleTest {
 
     // set gateway url
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d895422b6b70de34c854si5dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/[projectId]/rpc");
     }
     
     //  The address the transaction is send from.
@@ -166,7 +166,7 @@ sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcU
 gateway url must be set
 
 ```
-DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d895422b6b70de34c854si5dd/rpc");
+DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/[projectId]/rpc");
 ```
 
 ##### x-api-key
