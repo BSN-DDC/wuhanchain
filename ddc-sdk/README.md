@@ -98,7 +98,7 @@ Add this dependency to your project's POM:
     <artifactId>ddc-sdk-wuhan</artifactId>
     <version>0.0.1</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/lib/ddc-sdk-Wuhan.jar</systemPath>
+    <systemPath>${project.basedir}/lib/ddc-sdk-wuhan.jar</systemPath>
 </dependency>
 
 <dependency>
