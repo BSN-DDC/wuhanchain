@@ -320,6 +320,6 @@ The default value of nonce is obtained from the gateway according to: signUserAd
 RequestOptions options = RequestOptions.builder().build();
 requestOptions.setNonce("2");
 
-sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcURI",options);
+sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcURI",options);
 ```
 
