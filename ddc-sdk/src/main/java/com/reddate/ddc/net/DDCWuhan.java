@@ -11,7 +11,7 @@ public abstract class DDCWuhan {
 
     public static final int CONNECTION_KEEP_ALIVE_TIME = 30 * 1000;
     public static final int POOLING_CONNECTION_MANAGER_MAX_TOTAL = 1000;
-    public static final int POOLING_CONNECTION_MANAGER_MAX_PER_ROUTE = 3000;
+    public static final int POOLING_CONNECTION_MANAGER_MAX_PER_ROUTE = 100;
     public static final int POOLING_CONNECTION_MANAGER_VALIDATE_AFTER_INACTIVITY = 30 * 1000;
     public static final int POOLING_CONNECTION_MANAGER_CLOSE_IDLE_CONNECTIONS = 30 * 1000;
 
