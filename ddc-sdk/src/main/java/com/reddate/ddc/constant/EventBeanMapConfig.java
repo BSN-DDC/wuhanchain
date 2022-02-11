@@ -30,11 +30,13 @@ public class EventBeanMapConfig {
         eventBeanMap.put(DDC721Functions.DDC_721_TRANSFER_EVENT, DDC721TransferEventBean.class);
         eventBeanMap.put(DDC721Functions.DDC_721_FREEZE_EVENT, DDC721FreezeEventBean.class);
         eventBeanMap.put(DDC721Functions.DDC_721_UNFREEZE_EVENT, DDC721UnFreezeEventBean.class);
+        eventBeanMap.put(DDC721Functions.DDC721SetURIEvent, DDC721SetURIEventBean.class);
 
         eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
         eventBeanMap.put(DDC1155Functions.DDC_1155_TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);
         eventBeanMap.put(DDC1155Functions.DDC_1155_FREEZE_EVENT, DDC1155FreezeEventBean.class);
         eventBeanMap.put(DDC1155Functions.DDC_1155_UNFREEZE_EVENT, DDC1155UnFreezeEventBean.class);
+        eventBeanMap.put(DDC1155Functions.DDC1155SetURIEvent, DDC1155SetURIEventBean.class);
 
     }
 }

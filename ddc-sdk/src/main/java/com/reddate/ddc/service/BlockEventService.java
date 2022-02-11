@@ -4,8 +4,6 @@ import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.dto.ddc.BaseEventBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.DDCWuhan;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -23,8 +21,6 @@ import java.util.Objects;
  * @description BlockEventService
  */
 public class BlockEventService extends BaseService {
-    private final Logger logger = LoggerFactory.getLogger(BlockEventService.class);
-
     /**
      * web3j
      */
@@ -42,7 +38,12 @@ public class BlockEventService extends BaseService {
         if (Strings.isEmpty(DDCWuhan.getGatewayUrl())) {
             throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
         }
-        web3j = Web3j.build(new HttpService(DDCWuhan.getGatewayUrl()));
+        HttpService httpService = new HttpService(DDCWuhan.getGatewayUrl());
+        String apiKey = DDCWuhan.getGatewayApiKey();
+        if (!Strings.isEmpty(apiKey)) {
+            httpService.addHeader("x-api-key", apiKey);
+        }
+        web3j = Web3j.build(httpService);
         if (Objects.isNull(web3j)) {
             throw new DDCException(ErrorMessage.REQUEST_FAILED);
         }
@@ -50,6 +51,9 @@ public class BlockEventService extends BaseService {
         EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNum), true).send();
         if (Objects.isNull(ethBlock)) {
             throw new DDCException(ErrorMessage.GET_BLOCK_BY_NUMBER_ERROR);
+        }
+        if (Objects.nonNull(ethBlock.getError())) {
+            throw new DDCException(ErrorMessage.ETH_PROXY_ERROR);
         }
 
         // get tx time

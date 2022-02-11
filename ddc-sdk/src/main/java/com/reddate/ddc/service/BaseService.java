@@ -21,15 +21,16 @@ import com.reddate.ddc.util.http.RestTemplateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.web3j.abi.FunctionEncoder;
 import org.fisco.bcos.web3j.abi.TypeReference;
-import org.fisco.bcos.web3j.abi.datatypes.DynamicArray;
 import org.fisco.bcos.web3j.abi.datatypes.Function;
 import org.fisco.bcos.web3j.abi.datatypes.Type;
-import org.fisco.bcos.web3j.abi.datatypes.generated.AbiTypes;
 import org.fisco.bcos.web3j.crypto.WalletUtils;
 import org.fisco.bcos.web3j.protocol.core.methods.response.AbiDefinition;
 import org.fisco.bcos.web3j.tx.AbiUtil;
 import org.fisco.bcos.web3j.tx.TransactionAssembleException;
-import org.fisco.bcos.web3j.tx.txdecode.*;
+import org.fisco.bcos.web3j.tx.txdecode.BaseException;
+import org.fisco.bcos.web3j.tx.txdecode.ContractAbiUtil;
+import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
+import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -305,7 +306,7 @@ public class BaseService extends RestTemplateUtil {
     }
 
     /**
-     * result check
+     * 校验交易结果
      *
      * @param respJsonRpcBean
      */
@@ -423,7 +424,7 @@ public class BaseService extends RestTemplateUtil {
             if (funcInputTypes.size() != funcParam.size()) {
                 throw new TransactionAssembleException("contract funcParam size is error");
             } else {
-                List<Type> finalInputs = inputFormat(funcInputTypes, funcParam);
+                List<Type> finalInputs = AbiUtil.inputFormat(funcInputTypes, funcParam);
                 List<String> funOutputTypes = AbiUtil.getFuncOutputType(abiDefinition);
                 List<TypeReference<?>> finalOutputs = AbiUtil.outputFormat(funOutputTypes);
                 Function function = new Function(funcName, finalInputs, finalOutputs);
@@ -431,8 +432,6 @@ public class BaseService extends RestTemplateUtil {
             }
         }
     }
-
-
 
     private ReqJsonRpcBean assembleCallTransaction(String encodedFunction, DDCContract contract) {
         Transaction transaction = Transaction.createEthCallTransaction(null, contract.getContractAddress(), encodedFunction);
@@ -696,32 +695,5 @@ public class BaseService extends RestTemplateUtil {
                 }
             }
         }
-    }
-
-    private static List<Type> inputFormat(List<String> funcInputTypes, List<Object> params) throws BaseException {
-        List<Type> finalInputs = new ArrayList();
-
-        for(int i = 0; i < funcInputTypes.size(); ++i) {
-            Class<? extends Type> inputType = null;
-            Object input = null;
-            if (funcInputTypes.get(i).indexOf("[") != -1 && funcInputTypes.get(i).indexOf("]") != -1) {
-                List<Object> arrList = new ArrayList(Arrays.asList(params.get(i).toString().split(",",-1)));
-                List<Type> arrParams = new ArrayList();
-
-                for(int j = 0; j < arrList.size(); ++j) {
-                    inputType = (Class<? extends Type>) AbiTypes.getType(funcInputTypes.get(i).substring(0, funcInputTypes.get(i).indexOf("[")));
-                    input = ContractTypeUtil.parseByType(funcInputTypes.get(i).substring(0, funcInputTypes.get(i).indexOf("[")), arrList.get(j).toString());
-                    arrParams.add(ContractTypeUtil.generateClassFromInput(input.toString(), inputType));
-                }
-
-                finalInputs.add(new DynamicArray(arrParams));
-            } else {
-                inputType = (Class<? extends Type>) AbiTypes.getType(funcInputTypes.get(i));
-                input = ContractTypeUtil.parseByType(funcInputTypes.get(i), params.get(i).toString());
-                finalInputs.add(ContractTypeUtil.generateClassFromInput(input.toString(), inputType));
-            }
-        }
-
-        return finalInputs;
     }
 }

@@ -59,6 +59,7 @@ public enum ErrorMessage {
     OPERATOR_IS_EMPTY(1047, "operator is empty"),
     OPERATOR_IS_NOT_ADDRESS_FORMAT(1048, "operator is not a standard address format"),
     REQUEST_FAILED(2001, "profile initialization failed"),
+    ETH_PROXY_ERROR(403, "both rpc err and result are null"),
     ;
 
     private Integer code;

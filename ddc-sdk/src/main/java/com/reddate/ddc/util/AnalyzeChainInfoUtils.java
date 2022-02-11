@@ -2,8 +2,11 @@ package com.reddate.ddc.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.dto.ddc.BaseEventBean;
 import com.reddate.ddc.dto.ddc.PayEventBean;
+import com.reddate.ddc.exception.DDCException;
+import org.apache.logging.log4j.util.Strings;
 import org.fisco.bcos.web3j.crypto.gm.sm2.util.encoders.Hex;
 import org.fisco.bcos.web3j.protocol.ObjectMapperFactory;
 import org.fisco.bcos.web3j.protocol.core.methods.response.Log;
@@ -23,6 +26,9 @@ import java.util.Map;
 public class AnalyzeChainInfoUtils {
 
     public static InputAndOutputResult analyzeTransactionOutput(String abi, String bin, String input, String output) throws BaseException, TransactionException {
+        if (Strings.isNotBlank(output) && "0x".equalsIgnoreCase(output)) {
+            throw new DDCException(ErrorMessage.INPUT_AND_OUTPUT_RESULT_IS_EMPTY);
+        }
         TransactionDecoder txDecodeSampleDecoder = new TransactionDecoder(abi, bin);
         return txDecodeSampleDecoder.decodeOutputReturnObject(input, output);
     }
