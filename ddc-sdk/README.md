@@ -73,11 +73,11 @@ public class SdkExampleTest {
     SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
 
     // ddcSdkClient instantiation
-    DDCSdkClient ddcSdkClient = new DDCSdkClient().instance(signEventListener);
+    DDCSdkClient ddcSdk = new DDCSdkClient().instance(signEventListener);
 
     // set gateway url
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/[projectId]/rpc");
+        DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
     }
     
     //  The address the transaction is send from.
@@ -105,7 +105,7 @@ public class SdkExampleTest {
      */
     @Test
     void mint() throws Exception {
-        String tx = sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcURI");
+        String tx = ddcSdk.ddc721Service.mint(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcURI");
         assertNotNull(tx);
     }
 
@@ -118,8 +118,7 @@ public class SdkExampleTest {
 
         byte[] data = new byte[1];
         data[0] = 1;
-        String tx = ddcSdkClient.ddc1155Service.safeMint(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", BigInteger.TEN, "Token-R88821", data);
-        log.info(tx);
+        String tx = ddcSdk.ddc1155Service.safeMint(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", BigInteger.TEN, "Token-R88821", data);
         assertNotNull(tx);            
 
     }
@@ -129,7 +128,7 @@ public class SdkExampleTest {
      */
     @Test
     void createAccount() {
-        Account account = sdkClient.accountService.createAccount();
+        Account account = ddcSdk.accountService.createAccount();
         assertNotNull(account);
     }
 
@@ -166,7 +165,7 @@ sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcU
 gateway url must be set
 
 ```
-DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/[projectId]/rpc");
+DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
 ```
 
 ##### x-api-key
