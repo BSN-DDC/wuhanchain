@@ -4,11 +4,24 @@ import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.cookie.DefaultCookieSpec;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.http.protocol.HttpContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -74,11 +87,19 @@ public class RestTemplateConfig {
 
 
     private HttpClientBuilder httpClientBuilder() {
+        PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+        Registry<CookieSpecProvider> r = RegistryBuilder.<CookieSpecProvider>create()
+                .register(CookieSpecs.STANDARD,new DefaultCookieSpecProvider(publicSuffixMatcher))
+                .register(CookieSpecs.STANDARD,new RFC6265CookieSpecProvider(publicSuffixMatcher))
+                .register("easy", new EasySpecProvider())
+                .build();
+
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         httpClientBuilder.setConnectionManager(poolingConnectionManager());
         ConnectionKeepAliveStrategy connectionKeepAliveStrategy = (httpResponse, httpContext) -> DDCWuhan.CONNECTION_KEEP_ALIVE_TIME;
         httpClientBuilder.setKeepAliveStrategy(connectionKeepAliveStrategy);
         httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler());
+        httpClientBuilder.setDefaultCookieSpecRegistry(r);
         return httpClientBuilder;
     }
 
@@ -113,5 +134,19 @@ public class RestTemplateConfig {
         }
 
         return sb.toString();
+    }
+
+
+    class EasySpecProvider implements CookieSpecProvider {
+        @Override
+        public CookieSpec create(HttpContext context) {
+            return new EasyCookieSpec();
+        }
+    }
+    class EasyCookieSpec extends DefaultCookieSpec {
+        @Override
+        public void validate(Cookie arg0, CookieOrigin arg1) {
+            //allow all cookies
+        }
     }
 }

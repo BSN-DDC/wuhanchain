@@ -634,6 +634,7 @@ public class BaseService extends RestTemplateUtil {
 
     /**
      * Analyze transaction data
+     *
      * @param txTimestamp
      * @param transactions
      * @param arrayList
@@ -658,6 +659,7 @@ public class BaseService extends RestTemplateUtil {
                 // contract info
                 String contractAbi = contract.getContractAbi();
                 String contractByteCode = contract.getContractBytecode();
+
                 if (Strings.isEmpty(contractAbi) || Strings.isEmpty(contractByteCode)) {
                     throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
                 }
@@ -669,12 +671,19 @@ public class BaseService extends RestTemplateUtil {
                 if (eventBeanMap.isEmpty()) {
                     throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
                 }
+                // 事件合约地址
+                String contractAddress = log.getAddress();
                 for (Map.Entry<String, Class> entry : eventBeanMap.entrySet()) {
-                    if (!map.containsKey(entry.getKey())) {
+                    String keyWithAddress = entry.getKey();
+                    // 合约地址
+                    String mapAddress = keyWithAddress.substring(0, contractAddress.length());
+                    // 合约方法
+                    String mapFunction = keyWithAddress.substring(contractAddress.length());
+                    if (!(map.containsKey(mapFunction) && contractAddress.equalsIgnoreCase(mapAddress))) {
                         continue;
                     }
 
-                    List<List<EventResultEntity>> eventLists = map.get(entry.getKey());
+                    List<List<EventResultEntity>> eventLists = map.get(mapFunction);
                     for (List<EventResultEntity> eventList : eventLists) {
                         try {
                             T eventBean = (T) assembleBeanByReflect(eventList, entry.getValue());

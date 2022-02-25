@@ -8,7 +8,6 @@ import org.bitcoinj.crypto.*;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
-import org.web3j.utils.Numeric;
 import sun.security.provider.SecureRandom;
 
 import java.util.List;
