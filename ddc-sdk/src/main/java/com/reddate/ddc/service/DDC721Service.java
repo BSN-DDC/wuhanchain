@@ -655,6 +655,7 @@ public class DDC721Service extends BaseService {
         }
 
         ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(sender);
         arrayList.add(ddcId);
         arrayList.add(ddcURI);
 
