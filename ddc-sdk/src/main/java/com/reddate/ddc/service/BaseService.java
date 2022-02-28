@@ -85,9 +85,7 @@ public class BaseService extends RestTemplateUtil {
         String contractAddress = contract.getContractAddress();
         BigInteger gasLimit = (Objects.nonNull(requestOptions) && requestOptions.getGasLimit() != null) ? requestOptions.getGasLimit() : estimateGas(sender, contractAddress, gasPrice, encodeTransaction, requestOptions);
         if (Objects.isNull(gasLimit)) {
-            if (BigInteger.ZERO.compareTo(gasLimit) >= 0) {
-                throw new DDCException(ErrorMessage.GAS_LIMIT_GET_FAILED);
-            }
+            throw new DDCException(ErrorMessage.GAS_LIMIT_GET_FAILED);
         }
 
         // build transaction
