@@ -26,7 +26,7 @@ public enum ErrorMessage {
     AMOUNT_LT_ZERO(1015, "amount is less than 0"),
     DDC_ID_LT_ZERO(1016, "ddcId is less than 0"),
     DDC_ID_LT_EMPTY(1016, "ddcId is empty"),
-    DDC_URI_IS_EMPTY(1017, "ddcURI is empty"),
+    DDC_URI_IS_EMPTY(1017, "ddcURI cannot be null, but can be an empty string"),
     CONTRACT_INFO_IS_EMPTY(1018, "contract info is empty"),
     CONTRACT_BYTECODE_IS_EMPTY(1019, "contract Bytecode is empty"),
     CONTRACT_ADDRESS_IS_EMPTY(1020, "contractAddress is empty"),
