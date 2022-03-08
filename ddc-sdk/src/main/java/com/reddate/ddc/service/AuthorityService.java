@@ -60,7 +60,6 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public String addAccountByOperator(String sender, String account, String accName, String accDID, String leaderDID, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
 
@@ -143,7 +142,6 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public AccountInfo getAccount(String account, RequestOptions options) throws Exception {
-
         // check account
         checkAccount(account);
 
@@ -245,14 +243,16 @@ public class AuthorityService extends BaseService {
      * @throws Exception
      */
     public String crossPlatformApproval(String sender, String from, String to, boolean approved, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
+
         // check from
         checkFrom(from);
+
         // check to
         checkTo(to);
 
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(new Address(from));
         arrayList.add(new Address(to));
