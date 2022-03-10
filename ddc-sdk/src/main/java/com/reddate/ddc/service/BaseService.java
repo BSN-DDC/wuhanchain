@@ -517,6 +517,17 @@ public class BaseService extends RestTemplateUtil {
         }
     }
 
+    /**
+     * check ddcURI
+     *
+     * @param ddcURI
+     */
+    public void checkDdcURI(String ddcURI) {
+        if (null == ddcURI) {
+            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
+        }
+    }
+
     /***
      * check ddcAddr
      * @param ddcAddr

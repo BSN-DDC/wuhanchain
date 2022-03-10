@@ -6,9 +6,7 @@ import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.RequestOptions;
-import org.fisco.bcos.web3j.crypto.WalletUtils;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
-import org.fisco.bcos.web3j.utils.Strings;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -52,17 +50,16 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String mint(String sender, String to, String ddcURI, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
 
         // check to
         checkTo(to);
 
-        if (Strings.isEmpty(ddcURI)) {
-            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
-        }
+        // check ddc uri
+        checkDdcURI(ddcURI);
 
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
         arrayList.add(ddcURI);
@@ -97,17 +94,16 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String safeMint(String sender, String to, String ddcURI, byte[] data, RequestOptions options) throws Exception {
+        // check sender
         checkSender(sender);
-        if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
-        }
-        if (Strings.isEmpty(ddcURI)) {
-            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
-        }
-        if (!WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_NOT_ADDRESS_FORMAT);
-        }
 
+        // check to
+        checkTo(to);
+
+        // check ddc uri
+        checkDdcURI(ddcURI);
+
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
         arrayList.add(ddcURI);
@@ -141,7 +137,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String approve(String sender, String to, BigInteger ddcId, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
 
@@ -151,6 +146,7 @@ public class DDC721Service extends BaseService {
         // check ddc id
         checkDdcId(ddcId);
 
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
         arrayList.add(ddcId);
@@ -181,9 +177,9 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String getApproved(BigInteger ddcId, RequestOptions options) throws Exception {
-
         // check ddc id
         checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);
@@ -217,7 +213,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String setApprovalForAll(String sender, String operator, Boolean approved, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
 
@@ -227,6 +222,7 @@ public class DDC721Service extends BaseService {
         if (null == approved) {
             throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
         }
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(operator);
@@ -234,8 +230,6 @@ public class DDC721Service extends BaseService {
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SET_APPROVAL_FOR_ALL, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -260,9 +254,9 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public Boolean isApprovedForAll(String owner, String operator, RequestOptions options) throws Exception {
-
         // check owner
         checkOwner(owner);
+
         // check operator
         checkOperator(operator);
 
@@ -273,7 +267,6 @@ public class DDC721Service extends BaseService {
 
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.IS_APPROVED_FOR_ALL, DDC721Contract);
-
         return (Boolean) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -304,15 +297,18 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String safeTransferFrom(String sender, String from, String to, BigInteger ddcId, byte[] data, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
+
         // checkFrom
         checkFrom(from);
+
         // check to
         checkTo(to);
+
         // check ddc Id
         checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(from);
@@ -322,8 +318,6 @@ public class DDC721Service extends BaseService {
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.SAFE_TRANSFER_FROM, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -352,13 +346,15 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String transferFrom(String sender, String from, String to, BigInteger ddcId, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
+
         // checkFrom
         checkFrom(from);
+
         // check to
         checkTo(to);
+
         // check ddc Id
         checkDdcId(ddcId);
 
@@ -370,8 +366,6 @@ public class DDC721Service extends BaseService {
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.TRANSFER_FROM, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -397,18 +391,18 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String freeze(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
+        // check sender
         checkSender(sender);
-        if (null == ddcId || BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
-        }
+
+        // check ddc Id
+        checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.FREEZE, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -436,6 +430,7 @@ public class DDC721Service extends BaseService {
     public String unFreeze(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
         // check sender
         checkSender(sender);
+
         //check ddc id
         checkDdcId(ddcId);
 
@@ -445,8 +440,6 @@ public class DDC721Service extends BaseService {
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.UNFREEZE, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -472,16 +465,16 @@ public class DDC721Service extends BaseService {
     public String burn(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
         // check sender
         checkSender(sender);
+
         // check ddc id
         checkDdcId(ddcId);
+
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(ddcId);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.BURN, DDC721Contract);
-
-        resultCheck(respJsonRpcBean);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -504,7 +497,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String owner, RequestOptions options) throws Exception {
-
         // check owner
         checkOwner(owner);
 
@@ -514,7 +506,6 @@ public class DDC721Service extends BaseService {
 
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.BALANCE_OF, DDC721Contract);
-
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -537,7 +528,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String ownerOf(BigInteger ddcId, RequestOptions options) throws Exception {
-
         // check ddc id
         checkDdcId(ddcId);
 
@@ -547,7 +537,6 @@ public class DDC721Service extends BaseService {
 
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC721Functions.OWNER_OF, DDC721Contract);
-
         return (String) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -568,7 +557,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String name(RequestOptions options) throws Exception {
-
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC721Functions.NAME, DDC721Contract);
         return (String) inputAndOutputResult.getResult().get(0).getData();
@@ -613,7 +601,6 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String ddcURI(BigInteger ddcId, RequestOptions options) throws Exception {
-
         // check ddc id
         checkDdcId(ddcId);
 
@@ -649,13 +636,14 @@ public class DDC721Service extends BaseService {
      * @throws Exception
      */
     public String setURI(String sender, BigInteger ddcId, String ddcURI, RequestOptions options) throws Exception {
+        // check ddc id
         checkDdcId(ddcId);
-        if (Strings.isEmpty(ddcURI)) {
-            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
-        }
 
+        // check ddc uri
+        checkDdcURI(ddcURI);
+
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
-        arrayList.add(sender);
         arrayList.add(ddcId);
         arrayList.add(ddcURI);
 

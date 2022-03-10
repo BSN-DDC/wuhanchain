@@ -8,7 +8,6 @@ import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.RequestOptions;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
-import org.web3j.utils.Strings;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -64,6 +63,9 @@ public class DDC1155Service extends BaseService {
 
         // check amount
         checkAmount(amount);
+
+        // check ddc uri
+        checkDdcURI(ddcURI);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -198,6 +200,7 @@ public class DDC1155Service extends BaseService {
 
         // check owner
         checkOwner(owner);
+
         // check operator
         checkOperator(operator);
 
@@ -292,12 +295,16 @@ public class DDC1155Service extends BaseService {
      * @throws Exception Exception
      */
     public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data, RequestOptions options) throws Exception {
+
         // check sender
         checkSender(sender);
+
         // check from
         checkFrom(from);
+
         // check to
         checkTo(to);
+
         if (null == ddcs || ddcs.isEmpty()) {
             throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
         }
@@ -347,8 +354,10 @@ public class DDC1155Service extends BaseService {
      * @throws Exception Exception
      */
     public String freeze(String sender, BigInteger ddcId, RequestOptions options) throws Exception {
+
         // check sender
         checkSender(sender);
+
         // check ddc id
         checkDdcId(ddcId);
 
@@ -617,11 +626,12 @@ public class DDC1155Service extends BaseService {
         // check ddc id
         checkDdcId(ddcId);
 
-        if (Strings.isEmpty(ddcURI)) {
-            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
-        }
+        // check ddc uri
+        checkDdcURI(ddcURI);
 
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(sender);
         arrayList.add(ddcId);
         arrayList.add(ddcURI);
 

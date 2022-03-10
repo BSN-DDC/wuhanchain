@@ -1,10 +1,8 @@
 package com.reddate.ddc.service;
 
 import com.reddate.ddc.constant.ChargeFunctions;
-import com.reddate.ddc.constant.ErrorMessage;
 import com.reddate.ddc.dto.config.DDCContract;
 import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
-import com.reddate.ddc.exception.DDCException;
 import com.reddate.ddc.net.RequestOptions;
 import org.fisco.bcos.web3j.abi.datatypes.Address;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
@@ -56,9 +54,8 @@ public class ChargeService extends BaseService {
         // check to
         checkTo(to);
 
-        if (null == amount || BigInteger.ZERO.compareTo(amount) >= 0) {
-            throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
-        }
+        // check amount
+        checkAmount(amount);
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -90,7 +87,6 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger balanceOf(String accAddr, RequestOptions options) throws Exception {
-
         // check accAddr
         checkAccAddr(accAddr);
 
@@ -100,7 +96,6 @@ public class ChargeService extends BaseService {
 
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.BALANCE_OF, chargeContract);
-
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -126,7 +121,6 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public BigInteger queryFee(String ddcAddr, String sig, RequestOptions options) throws Exception {
-
         // check ddc contract address
         checkDdcAddr(ddcAddr);
 
@@ -140,7 +134,6 @@ public class ChargeService extends BaseService {
 
         // send call tran and decode output
         InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, ChargeFunctions.QUERY_FEE, chargeContract);
-
         return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
     }
 
@@ -166,13 +159,13 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String selfRecharge(String sender, BigInteger amount, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
-        if (amount == null || BigInteger.ZERO.compareTo(amount) >= 0) {
-            throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
-        }
 
+        // check amount
+        checkAmount(amount);
+
+        // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(amount);
 
@@ -207,7 +200,6 @@ public class ChargeService extends BaseService {
      * @throws Exception
      */
     public String setFee(String sender, String ddcAddr, String sig, BigInteger amount, RequestOptions options) throws Exception {
-
         // check sender
         checkSender(sender);
 
