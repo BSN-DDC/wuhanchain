@@ -1,8 +1,8 @@
 package service;
 
-import com.reddate.ddc.DDCSdkClient;
-import com.reddate.ddc.listener.SignEventListener;
-import com.reddate.ddc.net.DDCWuhan;
+import com.reddate.wuhanddc.DDCSdkClient;
+import com.reddate.wuhanddc.listener.SignEventListener;
+import com.reddate.wuhanddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
@@ -13,7 +13,7 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
 public class ChargeServiceTest {

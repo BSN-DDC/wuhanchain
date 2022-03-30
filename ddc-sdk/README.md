@@ -14,7 +14,7 @@ Add this dependency to your project's POM:
 
 ```xml
 <dependency>
-    <groupId>com.reddate.ddc</groupId>
+    <groupId>com.reddate.wuhanddccom.reddate.wuhanddc</groupId>
     <artifactId>ddc-sdk-wuhan</artifactId>
     <version>0.0.1</version>
     <scope>system</scope>
@@ -51,11 +51,9 @@ SdkExampleTest.java
 ```java
 package service;
 
-import com.reddate.ddc.DDCSdkClient;
-import com.reddate.ddc.dto.ddc.Account;
-import com.reddate.ddc.listener.SignEventListener;
-import com.reddate.ddc.net.RequestOptions;
-import com.reddate.ddc.service.DDC721Service;
+import com.reddate.wuhanddc.DDCSdkClient;
+import com.reddate.wuhanddc.dto.ddc.Account;
+import com.reddate.wuhanddc.listener.SignEventListener;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.RawTransaction;
@@ -79,7 +77,7 @@ public class SdkExampleTest {
     static {
         DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
     }
-    
+
     //  The address the transaction is send from.
     public String sender = "0x24a95d34dcbc74f714031a70b077e0abb3308088";
 
@@ -89,8 +87,8 @@ public class SdkExampleTest {
         // sender privateKey
         String privateKey = "0x20bd77e9c6c920cba10f4ef3fdd10e0cfbf8a4781292d8c8d61e37458445888";
         Credentials credentials = Credentials.create(privateKey);
-        
-         /**
+
+        /**
          * 5555
          * wuhanchain id,call example
          * curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
@@ -109,17 +107,17 @@ public class SdkExampleTest {
         assertNotNull(tx);
     }
 
-	 /**
+    /**
      * DDC1155 safeMint
      * @throws Exception
-     */    
+     */
     @Test
     void safeMint() throws Exception {
 
         byte[] data = new byte[1];
         data[0] = 1;
         String tx = ddcSdk.ddc1155Service.safeMint(sender, "0x24a95d34dcbc74f714031a70b077e0abb3308088", BigInteger.TEN, "Token-R88821", data);
-        assertNotNull(tx);            
+        assertNotNull(tx);
 
     }
 

@@ -1,12 +1,12 @@
 package service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.reddate.ddc.DDCSdkClient;
-import com.reddate.ddc.dto.ddc.AccountInfo;
-import com.reddate.ddc.dto.ddc.AccountState;
-import com.reddate.ddc.exception.DDCException;
-import com.reddate.ddc.listener.SignEventListener;
-import com.reddate.ddc.net.DDCWuhan;
+import com.reddate.wuhanddc.DDCSdkClient;
+import com.reddate.wuhanddc.dto.ddc.AccountInfo;
+import com.reddate.wuhanddc.dto.ddc.AccountState;
+import com.reddate.wuhanddc.exception.DDCException;
+import com.reddate.wuhanddc.listener.SignEventListener;
+import com.reddate.wuhanddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
@@ -14,7 +14,7 @@ import org.web3j.crypto.RawTransaction;
 import org.web3j.crypto.TransactionEncoder;
 import org.web3j.utils.Numeric;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
 public class AuthorityServiceTest {
