@@ -2,10 +2,10 @@ package service;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.reddate.ddc.DDCSdkClient;
-import com.reddate.ddc.dto.wuhanchain.RespJsonRpcBean;
-import com.reddate.ddc.dto.wuhanchain.TransactionsBean;
-import com.reddate.ddc.listener.SignEventListener;
+import com.reddate.wuhanddc.DDCSdkClient;
+import com.reddate.wuhanddc.dto.wuhanchain.RespJsonRpcBean;
+import com.reddate.wuhanddc.dto.wuhanchain.TransactionsBean;
+import com.reddate.wuhanddc.listener.SignEventListener;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -66,7 +66,7 @@ class BaseServiceTest {
 
     @Test
     void getTransByStatus() throws Exception {
-        boolean status = ddcSdkClient.baseService.getTransByStatus("0xb602c3187c41bf9041141c95ce373b5455662768eaf16338713f113d742b7147");
+        boolean status = ddcSdkClient.baseService.getTransStatusByHash("0xb602c3187c41bf9041141c95ce373b5455662768eaf16338713f113d742b7147");
         log.info(String.valueOf(status));
     }
 }

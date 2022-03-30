@@ -1,9 +1,9 @@
 package service;
 
 import com.alibaba.fastjson.JSON;
-import com.reddate.ddc.DDCSdkClient;
-import com.reddate.ddc.listener.SignEventListener;
-import com.reddate.ddc.net.DDCWuhan;
+import com.reddate.wuhanddc.DDCSdkClient;
+import com.reddate.wuhanddc.listener.SignEventListener;
+import com.reddate.wuhanddc.net.DDCWuhan;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
