@@ -49,14 +49,20 @@ interface IAuthority {
         Active
     }
 
+    // @dev Added account method notification event.
     event AddAccount(address indexed caller, address indexed account);
 
+    // @dev Batch add account method notification event
+    event AddBatchAccount(address indexed operator, address[] accounts);
+
+    // @dev Update user state method notification event
     event UpdateAccountState(
         address indexed account,
         State platformState,
         State operatorState
     );
 
+    // @dev Add function method to notify event
     event AddFunction(
         address indexed operator,
         Role indexed role,
@@ -64,6 +70,7 @@ interface IAuthority {
         bytes4 sig
     );
 
+    // @dev Delete function method to notify event
     event DelFunction(
         address indexed operator,
         Role indexed role,
@@ -71,11 +78,21 @@ interface IAuthority {
         bytes4 sig
     );
 
+    // @dev Cross-platform authorization method notification events
     event CrossPlatformApproval(
         address indexed from,
         address indexed to,
         bool approved
     );
+
+    // @dev The platform side adds the chain account switch method notification event.
+    event SetSwitcherStateOfPlatform(address indexed operator, bool isOpen);
+
+    // @dev The operator adds the account switch method notification event in batches.
+    event SetSwitcherStateOfBatch(address indexed operator,bool isOpen);
+
+    // @dev Synchronize notification events for DID methods.
+    event SyncPlatformDID(address indexed operator, string[] dids);
 
     /**
      * @dev Add operator account information
@@ -89,19 +106,50 @@ interface IAuthority {
         string memory accountDID
     ) external;
 
-    // /**
-    //  * @dev add account(only leader can add it's flower)
-    //  * @param account account
-    //  * @param accountDID accountDID
-    //  **/
-    // function addAccountByPlatform(
-    //     address account,
-    //     string memory accountName,
-    //     string memory accountDID
-    // ) external;
+    /**
+     * @dev add consumer(only leader can add it's flower)
+     * @param account account
+     * @param accountDID accountDID
+     **/
+    function addAccountByPlatform(
+        address account,
+        string memory accountName,
+        string memory accountDID
+    ) external;
 
     /**
-     * @dev add consumer(only operator can invoke this function)
+     * @dev add consumers
+     *
+     * Requirements:
+     * - sender is `platformmanger` role.
+     * - the switcher of platform is opened.
+     * - `accounts` & `accountNames` & `accountDIDs` must have the same length.
+     **/
+    function addBatchAccountByPlatform(
+        address[] memory accounts,
+        string[] memory accountNames,
+        string[] memory accountDIDs
+    ) external;
+
+    /**
+     * @dev set the state of switcher on the platform side to control whether some methods can be called.
+     * Requirements:
+     * - `sender` must be `Operator` role
+     * @param isOpen true or false
+     **/
+    function setSwitcherStateOfPlatform(bool isOpen) external;
+
+    /**
+     * @dev Sync the platform dids added earlier to the new validation collection.
+     * Requirements:
+     * - `sender` must be `Operator` role
+     */
+    function syncPlatformDID(string[] memory dids) external;
+
+    /**
+     * @dev add consumer and platformmanager(only operator can invoke this function)
+     * Requirements:
+     * - 'platformmanager' role needs to support multiple addresses for one accountDID
      * @param account account
      * @param accountName accountName
      * @param accountDID accountDID
@@ -112,6 +160,24 @@ interface IAuthority {
         string memory accountName,
         string memory accountDID,
         string memory leaderDID
+    ) external;
+
+    /**
+     * @dev add consumers and platformmanagers(only operator can invoke this function)
+     *
+     * Requirements:
+     * - `accounts` & `accountNames` & `accountDIDs` & `leaderDIDs` must have the same length.
+     *
+     * @param accounts account
+     * @param accountNames accountName
+     * @param accountDIDs accountDID
+     * @param leaderDIDs leaderDID
+     **/
+    function addBatchAccountByOperator(
+        address[] memory accounts,
+        string[] memory accountNames,
+        string[] memory accountDIDs,
+        string[] memory leaderDIDs
     ) external;
 
     /**
@@ -272,4 +338,9 @@ interface IAuthority {
         external
         view
         returns (bool);
+
+    /**
+     * @dev Get the state of platform-side switcher
+     **/
+    function switcherStateOfPlatform() external view returns (bool);
 }
