@@ -1,9 +1,10 @@
 # DDC-SDK
 
 - [DDC-SDK](#ddc-sdk)
-  - [要求](#要求)
-  - [文档](#文档)
+    - [要求](#要求)
+    - [文档](#文档)
   - [用法](#用法)
+    - [合约地址信息：](#合约地址信息)
     - [1.初始化DDCSdkClient](#1初始化ddcsdkclient)
     - [2.BSN-DDC-权限管理](#2bsn-ddc-权限管理)
     - [3.BSN-DDC-费用管理](#3bsn-ddc-费用管理)
@@ -18,17 +19,8 @@
   - [配置](#配置)
     - [按请求配置](#按请求配置)
     - [配置网关](#配置网关)
-      - [网关地址](#网关地址)
-      - [x-api-key](#x-api-key)
-    - [配置自动重试](#配置自动重试)
-    - [配置超时](#配置超时)
-    - [配置 （ethGetTransactionCount）nonce 值](#配置-ethgettransactioncountnonce-值)
-
-  - [配置](#配置)
-    - [按请求配置](#按请求配置)
-    - [配置网关](#配置网关)
-      - [网关地址](#网关地址)
-      - [x-api-key](#x-api-key)
+        - [网关地址](#网关地址)
+        - [网关KEY](#网关key)
     - [配置自动重试](#配置自动重试)
     - [配置超时](#配置超时)
     - [配置 （ethGetTransactionCount）nonce 值](#配置-ethgettransactioncountnonce-值)
@@ -79,18 +71,18 @@
     // 也可设置合约地址和相关参数值
     DDCSdkClient ddcSdkClient = DDCSdkClient.builder()
             .setSignEventListener(signEventListener)
-            .setAuthorityAddress("[权限合约地址]")
-            .setChargeAddress("[计费合约地址]")
-            .setDdc721Address("[DDC721合约地址]")
-            .setDdc1155Address("[DDC1155合约地址]")
-            .setCrossChainAddress("[跨链合约地址]")
+            .setAuthorityAddress("0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5")  // 权限代理合约地址
+            .setChargeAddress("0xCa97bF3a19403805d391102908665b16B4d0217C")     // 计费代理合约地址
+            .setDdc721Address("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")     // DDC 721代理合约地址
+            .setDdc1155Address("0x061e59c74815994DAb4226a0D344711F18E0F418")    // DDC 1155代理合约地址
+            .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048") // 跨链应用代理合约地址
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
     // 设置网关
-    DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
+    DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[项目ID]/rpc");
     // 设置网关API-KEY
-    DDCWuhan.setGatewayApiKey("[API-KEY]");
+    DDCWuhan.setGatewayApiKey("[项目KEY]");
     // 设置Nonce管理地址（通过该地址获得Nonce）
     DDCWuhan.setNonceManagerAddress(sender);
     
@@ -710,14 +702,14 @@ sdkClient.ddc721Service.mint("0x24a95d34dcbc74f714031a70b077e0abb3308088", "ddcU
 必须配置网关URI
 
 ```java
-DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
+DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[项目ID]/rpc");
 ```
 
-##### x-api-key
+##### 网关KEY
 如果在BSN门户中启用项目密钥，则需要在sdk中进行配置。此配置将全局生效。
 
 ```java
-DDCWuhan.setGatewayApiKey("[API-KEY]");
+DDCWuhan.setGatewayApiKey("[项目KEY]");
 ```
 
 
