@@ -5,11 +5,11 @@
 
 #### 参数信息
 
-- 武汉链在 BSN 中继链上的侧链 ID：`1003650780676003`
+- 以太坊主网侧链 ID：`12305`
+- 武汉链侧链 ID：`1003650780676003`
 - 武汉链跨链管理合约地址：`0x52ef671540086AEc1774aFbe26E0DB9061aeCBE2`
-- 以太坊主网在 BSN 中继链上的侧链 ID：12305
 - 以太坊主网跨链管理合约地址：`0x49f264851241694f80EACF616AA888eEAE5FB7E4`
-- 以太坊主网 NFT 合约地址：`0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9 `
+- 以太坊主网 NFT 合约地址：`0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9`
 
 
 
@@ -60,12 +60,12 @@ log.info(JSON.toJSONString(result));
 **请注意：**
 
 - 以太坊主网在 BSN 中继链上的侧链 ID 为 12305，此为固定值不会发生变更。
-- 我们在以太坊主网部署的 NFT 合约地址为 `0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9`，您可直接使用。如果您有自己部署的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码。如果您有自定义合约的需求，请参见[以太坊主网 NFT721 合约开发指南](更新github地址！！！！) 。
+- 我们在以太坊主网部署的 NFT 合约地址为 `0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9`，您可直接使用。如果您有自己部署的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码。如果您有自定义合约的需求，请参见[以太坊主网 NFT 合约开发指南](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%BB%E7%BD%91NFT%E5%90%88%E7%BA%A6%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md) 。
 
 
 
 #### 5.获取跨链服务 Token
-发起跨链交易后，您需要访问以太坊跨链服务，请参见[BSN-DDC跨链服务OpenAPI](更新github地址！！！！) 的【**获取Token**】接口，得到`session_id`。
+发起跨链交易后，您需要访问以太坊跨链服务，请参见[BSN-DDC跨链服务OpenAPI](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/BSN-DDC%E8%B7%A8%E9%93%BE%E6%9C%8D%E5%8A%A1OpenAPI.md) 的【**获取Token**】接口，得到`session_id`。
 
 #### 6.查询跨链状态
 得到有效的 Token 后，结合跨链交易的签名账户（即sdk里的`setSender`），继续对接【**查询跨链状态**】接口，确保可以查到待签名的跨链数据。
@@ -78,7 +78,7 @@ log.info(JSON.toJSONString(result));
 该接口仅可查询待签名的跨链数据。
 
 #### 8.对跨链数据进行签名
-跨链数据的数据结构如下，其定义详情请参见`github.com/ethereum/go-ethereum/core/types`
+- 跨链数据的数据结构如下，其定义详情请参见`github.com/ethereum/go-ethereum/core/types`。请注意：`To`表示以太坊上的跨链管理合约地址`0x49f264851241694f80EACF616AA888eEAE5FB7E4`，如发生变更，BSN-DDC将会提前在迭代公告内说明 。
 
 ```go
 type DynamicFeeTx struct {
@@ -99,13 +99,95 @@ type DynamicFeeTx struct {
 }
 ```
 
-**请注意：**
+- 签名方法请参见下述代码
 
-- `To`表示以太坊上的跨链管理合约地址，此值如发生变更，BSN-DDC将会提前在迭代公告内说明 `0x49f264851241694f80EACF616AA888eEAE5FB7E4`。
-- 具体签名过程，请参见[示例代码](更新demo的github地址)。
+```go
+func SignTx(dynamicFeeTx *types.DynamicFeeTx) (signedtx *types.Transaction, err error) {
+    // 连接以太坊节点 RPC 地址
+	ethClient, err := ethclient.Dial(ethRpcAddr)
+	if err != nil {
+		fmt.Printf("dial eth client err: %s \n", err)
+		return
+	}
+	
+	defer ethClient.Close()
+	
+	// 以太坊链 ID
+	chainId, err := ethClient.ChainID(context.Background())
+	if err != nil {
+		fmt.Printf("get chain id err: %v \n", err)
+		return
+	}
+	
+	// 加载钱包
+	keyStore := util.NewEthKeyStore(chainId)
+	err = keyStore.UnlockKeys()
+	if err != nil {
+		fmt.Printf("unlock keys err: %v \n", err)
+		return
+	}
+	
+	// 取钱包账户
+	accArr := keyStore.GetAccounts()
+	nonce, err := ethClient.PendingNonceAt(context.Background(), accArr[0].Address)
+	if err != nil {
+		fmt.Printf("cannot get account %s nonce, err: %s, set it to nil! \n", accArr[0].Address, err)
+		return
+	}
+	
+    // 获取当前小费上限
+	gasTipCap, err := ethClient.SuggestGasTipCap(context.Background())
+	if err != nil {
+		fmt.Printf("get suggest gas tipCap failed error: %s \n", err.Error())
+		return
+	}
+	
+    // 获取当前块高
+	number, err := ethClient.BlockNumber(context.Background())
+	if err != nil {
+		fmt.Printf("get New BlockNumber failed error: %s \n", err.Error())
+		return
+	}
+	
+   // 获取当前区块头
+	newHead, err := ethClient.HeaderByNumber(context.Background(), big.NewInt(int64(number)))
+	if err != nil {
+		fmt.Printf("get Block By Number failed error: %s \n", err.Error())
+		return
+	}
+	
+    // 计算本交易的费用上限
+	gasFeeCap := new(big.Int).Add(
+		gasTipCap,
+		new(big.Int).Mul(newHead.BaseFee, big.NewInt(2)),
+	)
+	
+	dynamicFeeTx.Nonce = nonce
+	dynamicFeeTx.ChainID = chainId
+	dynamicFeeTx.GasFeeCap = gasFeeCap
+	dynamicFeeTx.GasTipCap = gasTipCap
+	
+	dynamicFeeTx.Gas = 500000
+	
+	tx := types.NewTx(dynamicFeeTx)
+	
+    // 签名
+	signedtx, err = keyStore.SignTransaction(tx, accArr[0])
+	if err != nil {
+		fmt.Printf("sign transactions err: %s \n", err.Error())
+		return
+	}
+	
+    // 返回签名数据
+	hash := signedtx.Hash()
+	fmt.Printf("eth tx hash:%v \n", hash.String())
+	return
+}
+```
+
 
 #### 9.发送签名交易
-完成签名后，继续对接[BSN-DDC跨链服务OpenAPI](更新github地址！！！！) 的【**发送交易到以太坊**】接口，向以太坊主网提交目标链交易。
+完成签名后，继续对接[BSN-DDC跨链服务OpenAPI](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/BSN-DDC%E8%B7%A8%E9%93%BE%E6%9C%8D%E5%8A%A1OpenAPI.md) 的【**发送交易到以太坊**】接口，向以太坊主网提交目标链交易。
 
 **请注意:** 
 
