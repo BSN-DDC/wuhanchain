@@ -33,30 +33,32 @@ public class CrossChainServiceTest {
     // ddcSdkClient instantiation
     DDCSdkClient ddcSdkClient = DDCSdkClient.builder()
             .setSignEventListener(signEventListener)
-            .setAuthorityAddress("0xB746e96bC24bc9bC11515b6F39Cbe135d1b67a59")
-            .setChargeAddress("0xf1b4db42b9a96CA2943C8e047552Fd6E05D55396")
-            .setDdc721Address("0xb4B46D6B2C7BC4389759f9EBE141cFE086771561")
-            .setDdc1155Address("0x5Bf9e07aBBF0cFbF21d02065529AE10e2Ef0a375")
-            .setCrossChainAddress("0x6ca34e1bFcC9A36113DdCE0D76d35E71dBbdd770")
+            .setAuthorityAddress("0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5")
+            .setChargeAddress("0xCa97bF3a19403805d391102908665b16B4d0217C")
+            .setDdc721Address("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")
+            .setDdc1155Address("0x061e59c74815994DAb4226a0D344711F18E0F418")
+            .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048")
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
-    // 平台方
-    public static String sender = "0x6da7e501dc26d8aa0d5a8bdec6deecd0c5f18343";
+
+    // 签名账户地址
+    public static String sender = "0xCd00A127C44E6E61070544e626ee5F9336D04e80";
+
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
         DDCWuhan.setNonceManagerAddress(sender);
     }
+
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-
-        String privateKey = "0x5855e769093e4a7b0ace3c8de6aefde8dea471a25858ad4aa9d7ebb906ae5214";
+        // sender 对应的Hex格式私钥
+        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
     }
-
 
     @Test
     public void crossChainTransfer() throws Exception {

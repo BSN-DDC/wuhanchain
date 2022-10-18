@@ -45,18 +45,31 @@
 
 ## 用法
 
+### 合约地址信息：
+
+```
+ 权限代理合约地址：0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5
+ 计费代理合约地址：0xCa97bF3a19403805d391102908665b16B4d0217C
+ DDC 721代理合约地址：0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2
+ DDC 1155代理合约地址：0x061e59c74815994DAb4226a0D344711F18E0F418
+ DDC 跨链应用代理合约地址：0xc4E12bB845D9991ee26718E881C712B2c0cB2048
+```
+
 ### 1.初始化DDCSdkClient
 
 ```java
     // 注册签名事件
     SignEventListener signEventListener = event -> transactionSignature(event.getSender(), event.getRawTransaction());
-    
+
+    // 签名账户地址
+    public static String sender = "0xCd00A127C44E6E61070544e626ee5F9336D04e80";
+
     // 签名处理示例
     String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        //sender privateKey
-        String privateKey = "[Hex格式私钥]";
+        // sender 对应的Hex格式私钥
+        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
@@ -74,13 +87,10 @@
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
-    // 签名账户地址
-    String sender = "0x6da7e501dc26d8aa0d5a8bdec6deecd0c5f18343";
-
     // 设置网关
     DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
     // 设置网关API-KEY
-    DDCWuhan.setGatewayApiKey("[网关API-KEY]");
+    DDCWuhan.setGatewayApiKey("[API-KEY]");
     // 设置Nonce管理地址（通过该地址获得Nonce）
     DDCWuhan.setNonceManagerAddress(sender);
     
@@ -707,7 +717,7 @@ DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc
 如果在BSN门户中启用项目密钥，则需要在sdk中进行配置。此配置将全局生效。
 
 ```java
-DDCWuhan.setGatewayApiKey("d8438f145351511503f572d632");
+DDCWuhan.setGatewayApiKey("[API-KEY]");
 ```
 
 

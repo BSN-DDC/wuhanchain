@@ -21,11 +21,11 @@ class BaseServiceTest {
     // ddcSdkClient instantiation
     DDCSdkClient ddcSdkClient = DDCSdkClient.builder()
             .setSignEventListener(signEventListener)
-            .setAuthorityAddress("0xB746e96bC24bc9bC11515b6F39Cbe135d1b67a59")
-            .setChargeAddress("0xf1b4db42b9a96CA2943C8e047552Fd6E05D55396")
-            .setDdc721Address("0xb4B46D6B2C7BC4389759f9EBE141cFE086771561")
-            .setDdc1155Address("0x5Bf9e07aBBF0cFbF21d02065529AE10e2Ef0a375")
-            .setCrossChainAddress("0x6ca34e1bFcC9A36113DdCE0D76d35E71dBbdd770")
+            .setAuthorityAddress("0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5")
+            .setChargeAddress("0xCa97bF3a19403805d391102908665b16B4d0217C")
+            .setDdc721Address("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")
+            .setDdc1155Address("0x061e59c74815994DAb4226a0D344711F18E0F418")
+            .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048")
             .setChainId(BigInteger.valueOf(5555))
             .build();
 

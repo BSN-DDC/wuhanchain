@@ -25,22 +25,23 @@ public class DDC721IntegrationTest {
     // ddcSdkClient instantiation
     DDCSdkClient ddcSdkClient = DDCSdkClient.builder()
             .setSignEventListener(signEventListener)
-            .setAuthorityAddress("0xB746e96bC24bc9bC11515b6F39Cbe135d1b67a59")
-            .setChargeAddress("0xf1b4db42b9a96CA2943C8e047552Fd6E05D55396")
-            .setDdc721Address("0xb4B46D6B2C7BC4389759f9EBE141cFE086771561")
-            .setDdc1155Address("0x5Bf9e07aBBF0cFbF21d02065529AE10e2Ef0a375")
-            .setCrossChainAddress("0x983d935D626a97eD219D95b11d36082b9D1A4A2d")
+            .setAuthorityAddress("0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5")
+            .setChargeAddress("0xCa97bF3a19403805d391102908665b16B4d0217C")
+            .setDdc721Address("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")
+            .setDdc1155Address("0x061e59c74815994DAb4226a0D344711F18E0F418")
+            .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048")
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
-    // 0x81072375a506581CADBd90734Bd00A20CdDbE48b
+    // 元交易签名私钥
     public static String originPrivateKey = "0xb1e104c4c3d74dc4a9131cde8f3619c1c2d68a442da19dc146159eae0311d8b1";
-    public static String sender = "0x4199137a1ffdb01829f9447d5620ac9fc160ca3b"; // 运营方账户
+    // 签名账户地址
+    public static String sender = "0x4199137a1ffdb01829f9447d5620ac9fc160ca3b";
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        //sender privateKey
+        // sender 对应的Hex格式私钥
         String privateKey = "0xb0740f6265b97f766bf2d109204bb320861e99a3fbdb67d0a9a84891ef280c97";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
@@ -48,7 +49,7 @@ public class DDC721IntegrationTest {
     }
 
     static {
-        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+        DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
         DDCWuhan.setNonceManagerAddress(sender);
     }
 
