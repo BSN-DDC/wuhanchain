@@ -23,6 +23,16 @@ interface IDDC721 is IERC165Upgradeable {
     );
 
     /**
+     * @dev Emitted when `ddcId` ddc is batch transferred from `from` to `to`.
+     */
+    event TransferBatch(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256[] ddcIds
+    );
+
+    /**
      * @dev Emitted when `owner` enables `approved` to manage the `ddcId` ddc.
      */
     event Approval(
@@ -56,6 +66,49 @@ interface IDDC721 is IERC165Upgradeable {
     event ExitBlacklist(address indexed sender, uint256 ddcId);
 
     /**
+     * @dev Emitted when `ddcId` ddc is transferred from `from` to `to`.
+     */
+    event MetaTransfer(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256 ddcId
+    );
+
+    /**
+     * @dev Emitted when `ddcId` ddc is transferred from `from` to `to`.
+     */
+    event MetaTransferBatch(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256[] ddcIds
+    );
+
+    /**
+     * @dev The DDC cross-chain application contract calls this API to lock the DDC cross-chain.
+     */
+    event Locklist(address indexed operator, uint256 ddcId);
+
+    /**
+     * @dev DDC cross-chain application contract calls this API to unlock DDC cross-chain.
+     */
+    event UnLocklist(address indexed operator, uint256 ddcId);
+
+    /**
+     * @dev Represents the type of HashType.
+     */
+    enum HashType {
+        mint,
+        safeMint,
+        mintBatch,
+        safeMintBatch,
+        transfer,
+        safeTransfer,
+        burn
+    }
+
+    /**
      * @dev  Initializes a name and symbol for the ddc.
      *
      * Requirements:
@@ -81,6 +134,22 @@ interface IDDC721 is IERC165Upgradeable {
     function setAuthorityProxyAddress(address authorityProxyAddress) external;
 
     /**
+     * @dev  Sets meta type hash args.
+     *
+     * Requirements:
+     * - sender must be the owner only.
+     */
+    function setMetaTypeHashArgs(HashType hashType, bytes32 hashValue) external;
+
+    /**
+     * @dev  Sets meta spearator arg.
+     *
+     * Requirements:
+     * - sender must be the owner only.
+     */
+    function setMetaSeparatorArg(bytes32 separator) external;
+
+    /**
      * @dev  Creates a new ddc for `to`. If ddcId is zero, Its ddc ID will be automatically
      *       assigned (and available on the emitted {IDDC721-Transfer} event)
      *
@@ -89,6 +158,17 @@ interface IDDC721 is IERC165Upgradeable {
      * - `to` must have the `DDC` attribute
      */
     function mint(address to, string memory ddcURI_) external;
+
+    /**
+     * @dev  Creates multipe new ddcs for `to`.The ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-TransferBatch} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * - `sender` and `to` must belong to the same platform.
+     */
+    function mintBatch(address to, string[] memory ddcURIs) external;
 
     /**
      * @dev  Creates a new ddc for `to`. If ddcId is zero, Its ddc ID will be automatically
@@ -103,6 +183,22 @@ interface IDDC721 is IERC165Upgradeable {
         address to,
         string memory _ddcURI,
         bytes memory _data
+    ) external;
+
+    /**
+     * @dev  Creates multipe new ddcs for `to`. The ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-TransferBatch} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * - `sender` and `to` must belong to the same platform.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     */
+    function safeMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        bytes memory data
     ) external;
 
     /**
@@ -155,6 +251,12 @@ interface IDDC721 is IERC165Upgradeable {
         external
         view
         returns (bool);
+
+    /**
+     * @notice getNonce for metatransfer
+     *
+     */
+    function getNonce(address from) external view returns (uint256);
 
     /**
      * @dev Safely transfers `ddcId` ddc from `from` to `to`, checking first that contract recipients
@@ -255,4 +357,157 @@ interface IDDC721 is IERC165Upgradeable {
      * Requirements:
      */
     function ddcURI(uint256 ddcId) external view returns (string memory);
+
+    /**
+     * @dev Returns the last ddcID.
+     *
+     * Requirements:
+     */
+    function getLatestDDCId() external view returns (uint256);
+
+    /**
+     * @dev  Creates a new ddc for `to`. If ddcId is zero, Its ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-Transfer} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     */
+    function metaMint(
+        address to,
+        string memory ddcURI_,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev  Creates a new ddc for `to`. If ddcId is zero, Its ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-metaSafeMint} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     */
+    function metaSafeMint(
+        address to,
+        string memory ddcURI_,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev  Creates multipe new ddcs for `to`. The ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-MetaTransferBatch} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * - `sender` and `to` must belong to the same platform.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     */
+    function metaMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev  Creates multipe new ddcs for `to`. The ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-MetaTransferBatch} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * - `sender` and `to` must belong to the same platform.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     */
+    function metaSafeMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Verify a signed transfer permit and execute if valid.
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `from `&`to` are must be a available `ddc` account.
+     * - `ddc` must be available.
+     * - sender & from & to are must be belong to the same platform;
+     *
+     * Emits a {MetaTransfer} event.
+     */
+    function metaTransferFrom(
+        address from,
+        address to,
+        uint256 ddcId,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Verify a signed transfer permit and execute if valid.
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `from `&`to` are must be a available `ddc` account.
+     * - `ddc` must be available.
+     * - sender & from & to are must be belong to the same platform;
+     *
+     * Emits a {MetaTransfer} event.
+     */
+    function metaSafeTransferFrom(
+        address from,
+        address to,
+        uint256 ddcId,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev meta tranfer burns a ddc.
+     *
+     * Requirements:
+     * - sender must own `ddcId` or be an approved operator.
+     */
+    function metaBurn(
+        uint256 ddcId,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Perform DDC cross-chain lock.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcId  DDC unique identifier
+     *
+     */
+    function lock(uint256 ddcId) external;
+
+    /**
+     * @dev Perform DDC cross-chain unlocking.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcId  DDC unique identifier
+     *
+     */
+    function unlock(uint256 ddcId) external;
 }

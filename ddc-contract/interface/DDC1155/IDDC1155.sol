@@ -94,6 +94,52 @@ interface IDDC1155 is IERC165Upgradeable {
     );
 
     /**
+     * @dev Represents the type of HashType.
+     */
+    enum HashType {
+        safeMint,
+        safeMintBatch,
+        safeTransfer,
+        safeTransferBatch,
+        burn,
+        burnBatch
+    }
+
+    /**
+     * @dev Emitted when `ddcId` ddc is transferred from `from` to `to`.
+     */
+    event MetaTransferSingle(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256 ddcId,
+        uint256 amount
+    );
+
+    event MetaTransferBatch(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256[] ddcIds,
+        uint256[] amounts
+    );
+
+    /**
+     * @dev The DDC cross-chain application contract calls this API to lock the DDC cross-chain.
+     */
+    event Locklist(address indexed operator, uint256 ddcId);
+
+    /**
+     * @dev DDC cross-chain application contract calls this API to unlock DDC cross-chain.
+     */
+    event UnLocklist(address indexed operator, uint256 ddcId);
+
+    /**
+     * @dev The owner information corresponding to the DDC is synchronized.
+     */
+    event SyncDDCOwners(address indexed operator,uint256[] ddcIds,address[][] owners);
+
+    /**
      * @dev Sets charge proxy address.
      *
      * Requirements:
@@ -108,6 +154,22 @@ interface IDDC1155 is IERC165Upgradeable {
      * - sender must be the owner only.
      */
     function setAuthorityProxyAddress(address authorityProxyAddress) external;
+
+    /**
+     * @dev  Sets meta type hash args.
+     *
+     * Requirements:
+     * - sender must be the owner only.
+     */
+    function setMetaTypeHashArgs(HashType hashType, bytes32 hashValue) external;
+
+    /**
+     * @dev  Sets meta spearator arg.
+     *
+     * Requirements:
+     * - sender must be the owner only.
+     */
+    function setMetaSeparatorArg(bytes32 separator) external;
 
     /**
      * @dev  Creates a new ddc for `to`.
@@ -186,6 +248,12 @@ interface IDDC1155 is IERC165Upgradeable {
         external
         view
         returns (bool);
+
+    /**
+     * @notice getNonce for metatransfer
+     *
+     */
+    function getNonce(address from) external view returns (uint256);
 
     /**
      * @dev Transfer a certain amount of a single DDC from the from account address to the to account address
@@ -318,4 +386,179 @@ interface IDDC1155 is IERC165Upgradeable {
      * @return
      */
     function ddcURI(uint256 ddcId) external view returns (string memory);
+
+    /**
+     * @dev Returns the last ddcID.
+     *
+     * Requirements:
+     */
+    function getLatestDDCId() external view returns (uint256);
+
+    /**
+     * @dev  Creates a new ddc for `to`.
+     *
+     * Requirements:
+     * - sender's role is platform only.
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * @param to Generate the recipient account address corresponding to the ddc
+     * @param amount The amount corresponding to the generated ddc
+     * @param _ddcURI URI corresponding to ddc
+     * @param data Additional data with no specified format
+     */
+    function metaSafeMint(
+        address to,
+        uint256 amount,
+        string memory _ddcURI,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev  Creates ddc list for `to`.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param to Generate the recipient account address corresponding to the ddc
+     * @param amounts Generate the quantity set corresponding to each ddc
+     * @param ddcURIs Generate the uri set corresponding to each ddc
+     * @param data Additional data with no specified format
+     */
+    function metaSafeMintBatch(
+        address to,
+        uint256[] memory amounts,
+        string[] memory ddcURIs,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Transfer a certain amount of a single DDC from the from account address to the to account address
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param from Owner’s address
+     * @param to Receiver's address
+     * @param ddcId  DDC unique identifier
+     * @param amount quantity
+     * @param data additional data
+     *
+     */
+    function metaSafeTransferFrom(
+        address from,
+        address to,
+        uint256 ddcId,
+        uint256 amount,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Transfer the DDC list from the from account address to the to account address according to a certain number of sets
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param from Owner’s address
+     * @param to Receiver's address
+     * @param ddcIds ddc uniquely identifies the collection
+     * @param amounts quantity collection
+     * @param data additional data
+     *
+     */
+    function metaSafeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ddcIds,
+        uint256[] memory amounts,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev meta tranfer burns a ddc.
+     *
+     * Requirements:
+     * - sender must own `ddcId` or be an approved operator.
+     */
+    function metaBurn(
+        address owner,
+        uint256 ddcId,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Destroy the DDC list owned by the owner in batches
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param owner  Owner account address
+     * @param ddcIds  DDC unique identifiers
+     *
+     */
+    function metaBurnBatch(
+        address owner,
+        uint256[] memory ddcIds,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external;
+
+    /**
+     * @dev Perform DDC cross-chain lock.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcId  DDC unique identifier
+     *
+     */
+    function lock(uint256 ddcId) external;
+
+    /**
+     * @dev Perform DDC cross-chain unlocking.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcId  DDC unique identifier
+     *
+     */
+    function unlock(uint256 ddcId) external;
+
+    /**
+     * @dev Returns the owner of the `ddcId` ddc.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcId  DDC unique identifier
+     * 
+     */
+    function ownerOf(uint256 ddcId) external view returns (address[] memory);
+
+    /**
+     * @dev Synchronize the owner list information corresponding to the old DDC by calling this method.
+     *
+     * Requirements:
+     * - ``
+     * - ``
+     * @param ddcIds  DDC unique identifiers
+     * @param owners  Owner account address
+     * 
+     */
+    function syncDDCOwners(uint256[] memory ddcIds,address[][] memory owners)external;
 }

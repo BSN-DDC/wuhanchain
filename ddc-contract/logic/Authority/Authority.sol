@@ -25,7 +25,15 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     mapping(Role => mapping(address => uint256)) private _contractIndexList;
 
     // @dev Account DID authorization collection.
-    mapping(string => mapping(string => bool)) _didApprovals;
+    mapping(string => mapping(string => bool)) private _didApprovals;
+
+    // @dev Platform DID collection.
+    mapping(string => bool) private _platformDIDs;
+
+    // @dev switcher represents whether some methods can be called by platform.
+    bool private _platformSwitcher;
+
+    bool private _enableBatch;
 
     constructor() initializer {}
 
@@ -47,7 +55,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     {}
 
     /**
-     * @dev See {IAuthorityLogic-addOperator}.
+     * @dev See {IAuthority-addOperator}.
      **/
     function addOperator(
         address operator,
@@ -67,31 +75,91 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             accountName,
             Role.Operator
         );
+        emit AddAccount(_msgSender(),operator);
+    }
+
+
+    /**
+     * @dev See {IAuthority-addAccountByPlatform}.
+     **/
+    function addAccountByPlatform(
+        address account,
+        string memory accountName,
+        string memory accountDID
+    ) external override {
+        _requireRole(Role.PlatformManager);
+        _requireOpenedSwitcherOfPlatform();
+        _requireAccountName(accountName);
+        _requireNotExist(account);
+        AccountInfo memory leader = _getAccount(_msgSender());
+        _addAccount(
+            account,
+            accountDID,
+            leader.accountDID,
+            accountName,
+            Role.Consumer
+        );
+        emit AddAccount(_msgSender(),account);
     }
 
     /**
-     * @dev See {IAuthorityLogic-addAccountByPlatform}.
+     * @dev See {IAuthority-addBatchAccountByPlatform}.
      **/
-    // function addAccountByPlatform(
-    //     address account,
-    //     string memory accountName,
-    //     string memory accountDID
-    // ) external override {
-    //     _requireRole(Role.PlatformManager);
-    //     _requireAccountName(accountName);
-    //     _requireNotExist(account);
-    //     AccountInfo memory leader = _getAccount(_msgSender());
-    //     _addAccount(
-    //         account,
-    //         accountDID,
-    //         leader.accountDID,
-    //         accountName,
-    //         Role.Consumer
-    //     );
-    // }
+    function addBatchAccountByPlatform(
+        address[] memory accounts,
+        string[] memory accountNames,
+        string[] memory accountDIDs
+    ) external override {
+        _requireOpenedSwitcherStateOfBatch();
+        _requireRole(Role.PlatformManager);
+        require(
+            accounts.length == accountNames.length &&
+                accountNames.length == accountDIDs.length,
+            "Authority: length mismatch"
+        );
+        AccountInfo memory leader = _getAccount(_msgSender());
+        for (uint256 i = 0; i < accounts.length; i++) {
+            _requireOpenedSwitcherOfPlatform();
+            _requireAccountName(accountNames[i]);
+            _requireNotExist(accounts[i]);
+            _addAccount(
+                accounts[i],
+                accountDIDs[i],
+                leader.accountDID,
+                accountNames[i],
+                Role.Consumer
+            );
+        }
+        emit AddBatchAccount(_msgSender(), accounts);
+    }
 
     /**
-     * @dev See {IAuthorityLogic-addAccountByOperator}.
+     * @dev See {IAuthority-setSwitcherStateOfPlatform}.
+     **/
+    function setSwitcherStateOfPlatform(bool isOpen) external override {
+        _requireRole(Role.Operator);
+        require(
+            isOpen != switcherStateOfPlatform(),
+            "Authority:invalid operation"
+        );
+        _platformSwitcher = isOpen;
+        emit SetSwitcherStateOfPlatform(_msgSender(), isOpen);
+    }
+
+    /**
+     * @dev See {IAuthority-syncPlatformDID}.
+     **/
+    function syncPlatformDID(string[] memory dids) external override {
+        _requireRole(Role.Operator);
+        for (uint256 i = 0; i < dids.length; i++) {
+            require(bytes(dids[i]).length != 0, "Authority:invalid did");
+            _platformDIDs[dids[i]] = true;
+        }
+        emit SyncPlatformDID(_msgSender(), dids);
+    }
+
+    /**
+     * @dev See {IAuthority-addAccountByOperator}.
      **/
     function addAccountByOperator(
         address account,
@@ -100,19 +168,40 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
         string memory leaderDID
     ) external override {
         _requireRole(Role.Operator);
-        _requireAccountName(accountName);
-        _requireNotExist(account);
-        Role role = Role.Consumer;
-        if (bytes(leaderDID).length == 0) {
-            AccountInfo memory leader = _getAccount(_msgSender());
-            leaderDID = leader.accountDID;
-            role = Role.PlatformManager;
-        }
-        _addAccount(account, accountDID, leaderDID, accountName, role);
+        _addAccountByOperator(account, accountName, accountDID, leaderDID);
+        emit AddAccount(_msgSender(), account);
     }
 
     /**
-     * @dev See {IAuthorityLogic-updateAccountState}.
+     * @dev See {IAuthority-addBatchAccountByOperator}.
+     **/
+    function addBatchAccountByOperator(
+        address[] memory accounts,
+        string[] memory accountNames,
+        string[] memory accountDIDs,
+        string[] memory leaderDIDs
+    ) external override {
+        _requireOpenedSwitcherStateOfBatch();
+        _requireRole(Role.Operator);
+        require(
+            accounts.length == accountNames.length &&
+                accountNames.length == accountDIDs.length &&
+                accountDIDs.length == leaderDIDs.length,
+            "Authority: length mismatch"
+        );
+        for (uint256 i = 0; i < accounts.length; i++) {
+            _addAccountByOperator(
+                accounts[i],
+                accountNames[i],
+                accountDIDs[i],
+                leaderDIDs[i]
+            );
+        }
+        emit AddBatchAccount(_msgSender(), accounts);
+    }
+
+    /**
+     * @dev See {IAuthority-updateAccountState}.
      **/
     function updateAccountState(
         address account,
@@ -129,7 +218,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
         require(
             (_leaderCheckByAccountInfo(accountInfo, leaderInfo) ||
                 leaderInfo.accountRole == Role.Operator),
-            "Authority: Account's role does not match!"
+            "Authority: Account's role does not match"
         );
         require(
             leaderInfo.accountRole != Role.Consumer,
@@ -166,7 +255,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-getAccount}.
+     * @dev See {IAuthority-getAccount}.
      **/
     function getAccount(address account)
         public
@@ -195,7 +284,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-checkAvailableAndRole}.
+     * @dev See {IAuthority-checkAvailableAndRole}.
      **/
     function checkAvailableAndRole(address account, Role role)
         public
@@ -211,7 +300,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-accountAvailable}.
+     * @dev See {IAuthority-accountAvailable}.
      **/
     function accountAvailable(address account)
         public
@@ -256,7 +345,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             funcAcl = _funcAclList[role][contractIndex - 1];
             require(
                 funcAcl.sigIndexList[sig] == 0,
-                "Authority: func already exists."
+                "Authority: func already exists"
             );
             funcAcl.funcList.push(sig);
             funcAcl.sigIndexList[sig] = funcAcl.funcList.length;
@@ -265,7 +354,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-delFunction}.
+     * @dev See {IAuthority-delFunction}.
      **/
     function delFunction(
         Role role,
@@ -279,14 +368,14 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             _getContractIndexOfRole(role, contractAddress)
         ];
         uint256 sigIndex = funcAcl.sigIndexList[sig];
-        require(sigIndex > 0, "Authority:func does not exists.");
+        require(sigIndex > 0, "Authority:func does not exists");
         funcAcl.funcList[sigIndex - 1] = bytes4(0);
         delete funcAcl.sigIndexList[sig];
         emit DelFunction(_msgSender(), role, contractAddress, sig);
     }
 
     /**
-     * @dev See {IAuthorityLogic-crossPlatformApproval}.
+     * @dev See {IAuthority-crossPlatformApproval}.
      **/
     function crossPlatformApproval(
         address from,
@@ -320,7 +409,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-getFunctions}.
+     * @dev See {IAuthority-getFunctions}.
      **/
     function getFunctions(Role role, address contractAddress)
         public
@@ -335,7 +424,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-hasFunctionPermission}.
+     * @dev See {IAuthority-hasFunctionPermission}.
      **/
     function hasFunctionPermission(
         address account,
@@ -358,7 +447,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-onePlatformCheck}.
+     * @dev See {IAuthority-onePlatformCheck}.
      **/
     function onePlatformCheck(address acc1, address acc2)
         public
@@ -410,7 +499,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev See {IAuthorityLogic-crossPlatformCheck}.
+     * @dev See {IAuthority-crossPlatformCheck}.
      **/
     function crossPlatformCheck(address from, address to)
         public
@@ -462,6 +551,26 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @dev See {IAuthority-switcherStateOfPlatform}.
+     **/
+    function switcherStateOfPlatform() public view override returns (bool) {
+        return _platformSwitcher;
+    }
+
+    /**
+     * @dev See {IAuthority-setSwitcherStateOfBatch}.
+     **/
+    function setSwitcherStateOfBatch(bool isOpen)public {
+        _requireRole(Role.Operator);
+        require(
+            isOpen != _enableBatch,
+            "Authority:invalid operation"
+        );
+        _enableBatch = isOpen;
+        emit SetSwitcherStateOfBatch(_msgSender(), isOpen);
+    }
+
+    /**
      * @dev get real contract index of _funcAclList
      **/
     function _getContractIndexOfRole(Role accRole, address contractAddress)
@@ -486,6 +595,35 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @dev add account by operator
+     **/
+    function _addAccountByOperator(
+        address account,
+        string memory accountName,
+        string memory accountDID,
+        string memory leaderDID
+    ) private {
+        _requireAccountName(accountName);
+        _requireNotExist(account);
+        Role role = Role.Consumer;
+        if (bytes(leaderDID).length == 0) {
+            // PlatformManager
+            require(
+                bytes(accountDID).length != 0,
+                "Authority: accountDID cannot be empty"
+            );
+            AccountInfo memory leader = _getAccount(_msgSender());
+            leaderDID = leader.accountDID;
+            role = Role.PlatformManager;
+            _platformDIDs[accountDID] = true;
+        } else {
+            // Consumer
+            require(_platformDIDs[leaderDID], "Authority:invalid leaderDID");
+        }
+        _addAccount(account, accountDID, leaderDID, accountName, role);
+    }
+
+    /**
      * @dev add account by params
      **/
     function _addAccount(
@@ -504,7 +642,6 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             accountRole: accountRole,
             field: ""
         });
-        emit AddAccount(_msgSender(), account);
     }
 
     /**
@@ -586,16 +723,36 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @dev Requires a operator role.
+     * @dev Requires a matched role.
      *
      * Requirements:
      * - `sender` must be a available `ddc` account.
-     * - `sender` must be a `Operator` role.
+     * - `sender` must be the specified role.
      */
     function _requireRole(Role role) private view {
         require(
             Authority.checkAvailableAndRole(_msgSender(), role),
-            "Authority:not a operator role or disabled"
+            "Authority: incorrect role or disabled"
+        );
+    }
+
+    /**
+     * @dev Requires the switcher of platform is opened.
+     */
+    function _requireOpenedSwitcherOfPlatform() private view {
+        require(
+            Authority.switcherStateOfPlatform(),
+            "Authority:switcher of platform is closed"
+        );
+    }
+
+    /**
+     * @dev Requires the switcher of platform is opened.
+     */
+    function _requireOpenedSwitcherStateOfBatch() private view {
+        require(
+            _enableBatch,
+            "Authority:switcher of batch is closed"
         );
     }
 }

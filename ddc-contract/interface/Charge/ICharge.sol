@@ -6,6 +6,12 @@ interface ICharge {
     /// @dev  event for recharge
     event Recharge(address indexed from, address indexed to, uint256 amount);
 
+    event RechargeBatch(
+        address indexed from,
+        address[] toList,
+        uint256[] amounts
+    );
+
     /**
      * @dev event for settlement
      * @param  accAddr account address for settlement
@@ -52,6 +58,8 @@ interface ICharge {
         uint256 ddcId
     );
 
+    event SetSwitcherStateOfBatch(address indexed operator,bool isOpen);
+
     /**
      * @dev  Sets authority proxy address.
      *
@@ -61,18 +69,25 @@ interface ICharge {
     function setAuthorityProxyAddress(address authorityProxyAddress) external;
 
     /**
-     * @dev  Recharge your subordinate account
+     * @dev  Recharge DDC fee to the specified account.
      *
      * Requirements:
-     * - The account status of both recharge parties is not frozen
-     * - The role of `sender` is Operator or `sender` is the leader of `to` account  or `sender` and `to` are at the same level and The role of `to` is not a consumer
-     * - `sender` balance is greater than or equal to recharge amount
-     *
-     * @param to Subordinate account address
-     * @param amount Recharge quantity
-     *
+     * - `sender` and `toList` are both active.
+     * - `sender` is Operator role or is the leader of each account from `toList` or is same role with each account from `toList` but they must not be consumers.
+     * - `sender` balance must be greater than or equal to the amount recharged.
      */
     function recharge(address to, uint256 amount) external;
+
+    /**
+     * @dev Batch recharge DDC fee to the specified accounts.
+     *
+     * Requirements:
+     * - `sender` and `toList` are both active.
+     * - `sender` is Operator role or is the leader of each account from `toList` or is same role with each account from `toList` but they must not be consumers.
+     * - `sender` balance must be greater than or equal to the amount recharged.
+     */
+    function rechargeBatch(address[] memory toList, uint256[] memory amounts)
+        external;
 
     /**
      * @dev  add DDC fee to operator's account.
@@ -153,16 +168,19 @@ interface ICharge {
     function delDDC(address ddcAddr) external;
 
     /**
-     * @dev  Returns the amount of DDC fee owned by accAddr
+     * @dev  Returns the DDC fee balance for the specified account.
      *
-     * Requirements:
-     * - ``
-     * - ``
-     * @param accAddr owned by accAddr
-     *
-     * @return
      */
     function balanceOf(address accAddr) external view returns (uint256);
+
+    /**
+     * @dev  Returns the DDC fee balance for all accounts.
+     *
+     */
+    function balanceOfBatch(address[] memory accAddrs)
+        external
+        view
+        returns (uint256[] memory);
 
     /**
      * @dev query the usage fee of DDC contract
@@ -184,4 +202,6 @@ interface ICharge {
      * @dev query total DDC fee.
      */
     function totalSupply() external view returns (uint256);
+
+    function setSwitcherStateOfBatch(bool isOpen) external;
 }

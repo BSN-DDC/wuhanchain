@@ -32,6 +32,8 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
 
     IAuthority private _authorityProxy;
 
+    bool private _enableBatch;
+
     constructor() initializer {}
 
     function initialize() public initializer {
@@ -70,10 +72,29 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
      * @dev See {ICharge-recharge}.
      */
     function recharge(address to, uint256 amount) external override {
-        require(amount != 0, "charge: no transfer is necessary");
-        _checkRechargeAuth(_msgSender(), to);
+        _checkRechargeAuth(_msgSender(), to, amount);
         _recharge(_msgSender(), to, amount);
         emit Recharge(_msgSender(), to, amount);
+    }
+
+    /**
+     * @dev See {ICharge-rechargeBatch}.
+     */
+    function rechargeBatch(address[] memory toList, uint256[] memory amounts)
+        external
+        override
+    {
+        _requireOpenedSwitcherStateOfBatch();
+        require(
+            toList.length != 0 && amounts.length != 0,
+            "charge:toList and amounts length must be greater than 0"
+        );
+        require(toList.length == amounts.length, "charge:length mismatch");
+        for (uint256 i = 0; i < toList.length; i++) {
+            _checkRechargeAuth(_msgSender(), toList[i], amounts[i]);
+            _recharge(_msgSender(), toList[i], amounts[i]);
+        }
+        emit RechargeBatch(_msgSender(), toList, amounts);
     }
 
     /**
@@ -163,6 +184,22 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @dev See {ICharge-balanceOfBatch}.
+     */
+    function balanceOfBatch(address[] memory accAddrs)
+        public
+        view
+        override
+        returns (uint256[] memory)
+    {
+        uint256[] memory batchBalances = new uint256[](accAddrs.length);
+        for (uint256 i = 0; i < accAddrs.length; i++) {
+            batchBalances[i] = Charge.balanceOf(accAddrs[i]);
+        }
+        return batchBalances;
+    }
+
+    /**
      * @dev See {ICharge-queryFee}.
      */
     function queryFee(address ddcAddr, bytes4 sig)
@@ -187,6 +224,19 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @dev See {ICharge-setSwitcherStateOfBatch}.
+     */
+    function setSwitcherStateOfBatch(bool isOpen) public override {
+        _requireOperator();
+        require(
+            isOpen != _enableBatch,
+            "charge:invalid operation"
+        );
+        _enableBatch = isOpen;
+        emit SetSwitcherStateOfBatch(_msgSender(), isOpen);
+    }
+
+    /**
      * @dev Requires sender's role must be `Role.Operator`.
      */
     function _requireOperator() private view {
@@ -195,7 +245,7 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
                 _msgSender(),
                 IAuthority.Role.Operator
             ),
-            "DDC721:not a operator role or disabled"
+            "charge:not a operator role or disabled"
         );
     }
 
@@ -242,10 +292,14 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
         require(
             (fromAcc.platformState == IAuthority.State.Active &&
                 fromAcc.operatorState == IAuthority.State.Active),
-            "charge: account is frozen"
+            "charge: `from` is frozen"
+        );
+        require(
+            fromAcc.accountRole != IAuthority.Role.Consumer,
+            "charge: no recharge permission"
         );
 
-        IAuthority.AccountInfo memory toAcc; //= _authorityProxy.getAccount(to);
+        IAuthority.AccountInfo memory toAcc;
         (
             toAcc.accountDID,
             ,
@@ -259,37 +313,46 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
         require(
             (toAcc.platformState == IAuthority.State.Active &&
                 toAcc.operatorState == IAuthority.State.Active),
-            "charge: to is frozen"
+            "charge: `to` is frozen"
         );
 
-        require(
-            fromAcc.accountRole != IAuthority.Role.Consumer,
-            "charge: no recharge permission"
-        );
-
-        //fromAcc.leaderDID.equal(toAcc.accountDID) ||
-        // fromAcc.accountDID.equal(toAcc.leaderDID) ||
-        // (fromAcc.leaderDID.equal(toAcc.leaderDID) &&
-        //     fromAcc.accountDID.equal(toAcc.accountDID) &&
-        //     toAcc.accountRole != IAuthorityLogic.Role.Consumer);
-
-        return
-            fromAcc.accountRole == IAuthority.Role.Operator ||
-            fromAcc.accountDID.equal(toAcc.leaderDID) ||
-            (fromAcc.leaderDID.equal(toAcc.leaderDID) &&
-                fromAcc.accountDID.equal(toAcc.accountDID) &&
-                toAcc.accountRole != IAuthority.Role.Consumer);
+        if (
+            (fromAcc.accountRole == IAuthority.Role.Consumer &&
+                toAcc.accountRole == IAuthority.Role.Consumer) ||
+            (fromAcc.accountRole == IAuthority.Role.PlatformManager &&
+                toAcc.accountRole == IAuthority.Role.PlatformManager &&
+                !fromAcc.accountDID.equal(toAcc.accountDID)) ||
+            (toAcc.accountRole == IAuthority.Role.Operator)
+        ) {
+            return false;
+        }
+        return true;
     }
 
     /**
      * @dev Check conditions of Recharge
      */
-    function _checkRechargeAuth(address from, address to) private view {
-        require(to != address(0), "charge: recharge to the zero address");
-        require(from != to, "charge: no recharge is necessary");
+    function _checkRechargeAuth(
+        address from,
+        address to,
+        uint256 amount
+    ) private view {
+        require(to != address(0), "charge: zero address");
+        require(from != to, "charge: invalid recharge operation");
+        require(amount != 0, "charge: invalid amount");
         require(
             _checkRechargePermission(from, to),
-            "charge: no recharge permission"
+            "charge: unsupported recharge operation"
+        );
+    }
+
+    /**
+     * @dev Requires the switcher of platform is opened.
+     */
+    function _requireOpenedSwitcherStateOfBatch() private view {
+        require(
+            _enableBatch,
+            "charge:switcher of batch is closed"
         );
     }
 }
