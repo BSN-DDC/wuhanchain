@@ -3,6 +3,9 @@ package com.reddate.wuhanddc.dto.ddc;
 public class AccountInfo {
 
 	/** DDC用户链账户地址  */
+	private String account;
+
+	/** DDC账户对应的DID信息  */
 	private String accountDID;
 
 	/** DDC账户对应的账户名称  */
@@ -82,10 +85,17 @@ public class AccountInfo {
 	public void setField(String field) {
 		this.field = field;
 	}
+	public String getAccount() {
+		return account;
+	}
 
+	public void setAccount(String account) {
+		this.account = account;
+	}
 	@Override
 	public String toString() {
 		return "AccountInfo{" +
+				"account='" + account + '\'' +
 				"accountDID='" + accountDID + '\'' +
 				", accountName='" + accountName + '\'' +
 				", accountRole=" + accountRole +

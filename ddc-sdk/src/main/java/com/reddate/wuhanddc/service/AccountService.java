@@ -8,6 +8,7 @@ import org.bitcoinj.crypto.*;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
 import sun.security.provider.SecureRandom;
 
 import java.util.List;
@@ -50,13 +51,14 @@ public class AccountService {
             ECKeyPair keyPair = ECKeyPair.create(bytes);
 
             Account accountInfo = new Account();
-            accountInfo.setAddress(String.format("0x%s", Keys.getAddress(keyPair.getPublicKey())));
+            accountInfo.setAddress(Numeric.prependHexPrefix(Keys.getAddress(keyPair.getPublicKey())));
             accountInfo.setMnemonic(str.toString());
-            accountInfo.setPublicKey(String.format("0x%s", keyPair.getPublicKey().toString(16)));
-            accountInfo.setPrivateKey(String.format("0x%s", keyPair.getPrivateKey().toString(16)));
+            accountInfo.setPublicKey(Numeric.toHexStringWithPrefixZeroPadded(keyPair.getPublicKey(), 128));
+            accountInfo.setPrivateKey(Numeric.toHexStringWithPrefixZeroPadded(keyPair.getPrivateKey(), 64));
             return accountInfo;
+
         } catch (Exception e) {
-            throw new DDCException(ErrorMessage.FAILED_TO_CREATE_ACCOUNT);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "failed to create account");
         }
     }
 }

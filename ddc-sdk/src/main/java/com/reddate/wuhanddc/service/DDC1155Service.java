@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static com.reddate.wuhanddc.constant.ContractConfig.DDCContracts;
 
 /**
- * ddc 1155
+ * wuhanddc 1155
  *
  * @author wxq
  */
@@ -64,7 +64,7 @@ public class DDC1155Service extends BaseService {
         // check amount
         checkAmount(amount);
 
-        // check ddc uri
+        // check wuhanddc uri
         checkDdcURI(ddcURI);
 
         // input params
@@ -74,7 +74,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcURI);
         arrayList.add(data);
 
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.Mint, DDC1155Contract);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SAFE_MINT, DDC1155Contract);
 
         return (String) respJsonRpcBean.getResult();
     }
@@ -111,7 +111,7 @@ public class DDC1155Service extends BaseService {
         checkTo(to);
 
         if (null == ddcInfo || ddcInfo.isEmpty()) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcAddr");
         }
         List<String> amountList = new ArrayList<>();
         List<String> ddcURI = new ArrayList<>();
@@ -119,7 +119,7 @@ public class DDC1155Service extends BaseService {
         ddcInfo.forEach((key, value) -> {
             // 验证accName不为空
             if (null == key || BigInteger.ZERO.compareTo(key) >= 0) {
-                throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
+                throw new DDCException(ErrorMessage.IS_EMPTY, "amount");
             }
 
             amountList.add(key.toString());
@@ -133,7 +133,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcURI.stream().collect(Collectors.joining(",")));
         arrayList.add(data);
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.MINT_BATCH, DDC1155Contract);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SAFE_MINT_BATCH, DDC1155Contract);
         return (String) respJsonRpcBean.getResult();
     }
 
@@ -253,7 +253,7 @@ public class DDC1155Service extends BaseService {
         // check to
         checkTo(to);
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
         // input params
@@ -274,13 +274,13 @@ public class DDC1155Service extends BaseService {
      *
      * @param from 拥有者账户
      * @param to   接收者账户
-     * @param ddcs 拥有者DDCID集合
+     * @param ddcInfos 拥有者DDCID集合
      * @param data 附加数据
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data) throws Exception {
-        return safeBatchTransferFrom(sender, from, to, ddcs, data, null);
+    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcInfos, byte[] data) throws Exception {
+        return safeBatchTransferFrom(sender, from, to, ddcInfos, data, null);
     }
 
     /**
@@ -288,13 +288,13 @@ public class DDC1155Service extends BaseService {
      *
      * @param from    拥有者账户
      * @param to      接收者账户
-     * @param ddcs    拥有者DDCID集合
+     * @param ddcInfos    拥有者DDCID集合
      * @param data    附加数据
      * @param options configuration
      * @return 交易哈希
      * @throws Exception Exception
      */
-    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcs, ArrayList<byte[]> data, RequestOptions options) throws Exception {
+    public String safeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcInfos, byte[] data, RequestOptions options) throws Exception {
 
         // check sender
         checkSender(sender);
@@ -305,18 +305,18 @@ public class DDC1155Service extends BaseService {
         // check to
         checkTo(to);
 
-        if (null == ddcs || ddcs.isEmpty()) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
+        if (null == ddcInfos || ddcInfos.isEmpty()) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
         }
 
         // input params
         ArrayList<String> ddcIds = new ArrayList();
         ArrayList<String> amounts = new ArrayList();
 
-        ddcs.forEach((key, value) -> {
+        ddcInfos.forEach((key, value) -> {
             // 验证accName不为空
             if (null == key || BigInteger.ZERO.compareTo(value) >= 0) {
-                throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
+                throw new DDCException(ErrorMessage.IS_EMPTY, "amount");
             }
 
             ddcIds.add(String.valueOf(key));
@@ -327,7 +327,7 @@ public class DDC1155Service extends BaseService {
         arrayList.add(to);
         arrayList.add(ddcIds.stream().collect(Collectors.joining(",")));
         arrayList.add(amounts.stream().collect(Collectors.joining(",")));
-        arrayList.add(data.stream().map(Object::toString).collect(Collectors.joining(",")));
+        arrayList.add(data);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SAFE_BATCH_TRANSFER_FROM, DDC1155Contract);
@@ -358,7 +358,7 @@ public class DDC1155Service extends BaseService {
         // check sender
         checkSender(sender);
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
         // input params
@@ -393,7 +393,7 @@ public class DDC1155Service extends BaseService {
         // check sender
         checkSender(sender);
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
         // input params
@@ -474,7 +474,7 @@ public class DDC1155Service extends BaseService {
         checkOwner(owner);
 
         if (null == ddcIds || ddcIds.isEmpty()) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
         }
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
@@ -513,7 +513,7 @@ public class DDC1155Service extends BaseService {
         // check owner
         checkOwner(owner);
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
         // input params
@@ -528,7 +528,7 @@ public class DDC1155Service extends BaseService {
 
     /***
      * 批量查询账户拥有的DDC的数量
-     * @param ddcs ddc owner collection
+     * @param ddcs wuhanddc owner collection
      * @return 拥有者账户所对应的每个DDCID所拥用的数量
      * @throws Exception
      */
@@ -546,7 +546,7 @@ public class DDC1155Service extends BaseService {
     public List<BigInteger> balanceOfBatch(Multimap<String, BigInteger> ddcs, RequestOptions options) throws Exception {
 
         if (null == ddcs || ddcs.isEmpty()) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
         }
 
         // input params
@@ -588,7 +588,7 @@ public class DDC1155Service extends BaseService {
      */
     public String ddcURI(BigInteger ddcId, RequestOptions options) throws Exception {
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
         // input params
@@ -623,10 +623,10 @@ public class DDC1155Service extends BaseService {
         // check sender
         checkSender(sender);
 
-        // check ddc id
+        // check wuhanddc id
         checkDdcId(ddcId);
 
-        // check ddc uri
+        // check wuhanddc uri
         checkDdcURI(ddcURI);
 
         // input params
@@ -636,7 +636,510 @@ public class DDC1155Service extends BaseService {
         arrayList.add(ddcURI);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SetURI, DDC1155Contract);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SET_URI, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 运营方、平台方以及终端用户通过调用该方法对当前最新DDCID进行查询
+     *
+     * @return
+     * @throws Exception
+     */
+    public BigInteger getLatestDDCId() throws Exception {
+        return getLatestDDCId(null);
+    }
+
+    /**
+     * 运营方、平台方以及终端用户通过调用该方法对当前最新DDCID进行查询
+     *
+     * @return
+     * @throws Exception
+     */
+    public BigInteger getLatestDDCId(RequestOptions options) throws Exception {
+        // send call tran and decode output
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, DDC1155Functions.GET_LATEST_DDC_ID, DDC1155Contract);
+        return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
+    }
+
+    /**
+     * Nonce查询
+     *
+     * @param from
+     * @return
+     * @throws Exception
+     */
+    public BigInteger getNonce(String from) throws Exception {
+        return getNonce(from, null);
+    }
+
+    /**
+     * Nonce查询
+     *
+     * @param from
+     * @return
+     * @throws Exception
+     */
+    public BigInteger getNonce(String from, RequestOptions options) throws Exception {
+        // check ddc id
+        checkFrom(from);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(from);
+
+        // send call tran and decode output
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, arrayList, DDC1155Functions.GET_NONCE, DDC1155Contract);
+
+        return (BigInteger) inputAndOutputResult.getResult().get(0).getData();
+    }
+
+
+    /**
+     * 元交易生成
+     *
+     * @param to     接收者账户
+     * @param amount DDC数量
+     * @param ddcURI DDCURI
+     * @param data   附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeMint(String sender, String to, BigInteger amount, String ddcURI, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaSafeMint(sender, to, amount, ddcURI, data, nonce, deadline, sign, null);
+    }
+
+    /**
+     * DDC的创建
+     *
+     * @param to      接收者账户
+     * @param amount  DDC数量
+     * @param ddcURI  DDC URI
+     * @param options config
+     * @param data    附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeMint(String sender, String to, BigInteger amount, String ddcURI, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check to
+        checkTo(to);
+
+        // check amount
+        checkAmount(amount);
+
+        // check wuhanddc uri
+        checkDdcURI(ddcURI);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(to);
+        arrayList.add(amount);
+        arrayList.add(ddcURI);
+        arrayList.add(data);
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_SAFE_MINT, DDC1155Contract);
+
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 元交易DDC的批量创建
+     *
+     * @param to      接收者账户
+     * @param ddcInfo DDC信息
+     * @param data    附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeMintBatch(String sender, String to, Multimap<BigInteger, String> ddcInfo, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaSafeMintBatch(sender, to, ddcInfo, data, nonce, deadline, sign, null);
+    }
+
+    /**
+     * 元交易DDC的批量创建
+     *
+     * @param to      接收者账户
+     * @param ddcInfo DDC信息
+     * @param data    附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @param options configuration
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeMintBatch(String sender, String to, Multimap<BigInteger, String> ddcInfo, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check to
+        checkTo(to);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        if (null == ddcInfo || ddcInfo.isEmpty()) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcAddr");
+        }
+        List<String> amountList = new ArrayList<>();
+        List<String> ddcURI = new ArrayList<>();
+
+        ddcInfo.forEach((key, value) -> {
+            // 验证accName不为空
+            if (null == key || BigInteger.ZERO.compareTo(key) >= 0) {
+                throw new DDCException(ErrorMessage.IS_EMPTY, "amount");
+            }
+
+            amountList.add(key.toString());
+            ddcURI.add(value);
+        });
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(to);
+        arrayList.add(amountList.stream().collect(Collectors.joining(",")));
+        arrayList.add(ddcURI.stream().collect(Collectors.joining(",")));
+        arrayList.add(data);
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_SAFE_MINT_BATCH, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 元交易DDC的转移
+     *
+     * @param from   拥有者账户
+     * @param to     接收者账户
+     * @param ddcId  DDCID
+     * @param amount 数量
+     * @param data   附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 转移结果
+     * @throws Exception Exception
+     */
+    public String metaSafeTransferFrom(String sender, String from, String to, BigInteger ddcId, BigInteger amount, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaSafeTransferFrom(sender, from, to, ddcId, amount, data, nonce, deadline, sign, null);
+    }
+
+    /**
+     * 元交易DDC的转移
+     *
+     * @param from    拥有者账户
+     * @param to      接收者账户
+     * @param ddcId   DDCID
+     * @param amount  数量
+     * @param data    附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @param options configuration
+     * @return 转移结果
+     * @throws Exception Exception
+     */
+    public String metaSafeTransferFrom(String sender, String from, String to, BigInteger ddcId, BigInteger amount, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check from
+        checkFrom(from);
+
+        // check to
+        checkTo(to);
+
+        // check wuhanddc id
+        checkDdcId(ddcId);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(from);
+        arrayList.add(to);
+        arrayList.add(ddcId);
+        arrayList.add(amount);
+        arrayList.add(data);
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_SAFE_TRANSFER_FROM, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 元交易DDC的批量转移
+     *
+     * @param from 拥有者账户
+     * @param to   接收者账户
+     * @param ddcInfos 拥有者DDCID集合
+     * @param data 附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcInfos, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaSafeBatchTransferFrom(sender, from, to, ddcInfos, data, nonce, deadline, sign, null);
+    }
+
+    /**
+     * 元交易DDC的批量转移
+     *
+     * @param from    拥有者账户
+     * @param to      接收者账户
+     * @param ddcInfos    拥有者DDCID集合
+     * @param data    附加数据
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @param options configuration
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaSafeBatchTransferFrom(String sender, String from, String to, Map<BigInteger, BigInteger> ddcInfos, byte[] data, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+
+        // check sender
+        checkSender(sender);
+
+        // check from
+        checkFrom(from);
+
+        // check to
+        checkTo(to);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        if (null == ddcInfos || ddcInfos.isEmpty()) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
+        }
+
+        // input params
+        ArrayList<String> ddcIds = new ArrayList();
+        ArrayList<String> amounts = new ArrayList();
+
+        ddcInfos.forEach((key, value) -> {
+            // 验证accName不为空
+            if (null == key || BigInteger.ZERO.compareTo(value) >= 0) {
+                throw new DDCException(ErrorMessage.IS_EMPTY, "amount");
+            }
+
+            ddcIds.add(String.valueOf(key));
+            amounts.add(String.valueOf(value));
+        });
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(from);
+        arrayList.add(to);
+        arrayList.add(ddcIds.stream().collect(Collectors.joining(",")));
+        arrayList.add(amounts.stream().collect(Collectors.joining(",")));
+        arrayList.add(data);
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_SAFE_BATCH_TRANSFER_FROM, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * DDC的销毁
+     *
+     * @param owner 拥有者账户
+     * @param ddcId DDCID
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaBurn(String sender, String owner, BigInteger ddcId, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaBurn(sender, owner, ddcId, nonce, deadline, sign, null);
+    }
+
+    /**
+     * DDC的销毁
+     *
+     * @param owner   拥有者账户
+     * @param ddcId   DDCID
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @param options configuration
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaBurn(String sender, String owner, BigInteger ddcId, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check owner
+        checkOwner(owner);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(owner);
+        arrayList.add(ddcId);
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_BURN, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * DDC的批量销毁
+     *
+     * @param owner  拥有者账户
+     * @param ddcIds DDCID集合
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaBurnBatch(String sender, String owner, List<BigInteger> ddcIds, BigInteger nonce, BigInteger deadline, byte[] sign) throws Exception {
+        return metaBurnBatch(sender, owner, ddcIds, nonce, deadline, sign, null);
+    }
+
+    /**
+     * DDC的批量销毁
+     *
+     * @param owner   拥有者账户
+     * @param ddcIds  DDCID集合
+     * @param nonce 校验值
+     * @param deadline 有效期
+     * @param sign 签名
+     * @param options configuration
+     * @return 交易哈希
+     * @throws Exception Exception
+     */
+    public String metaBurnBatch(String sender, String owner, List<BigInteger> ddcIds, BigInteger nonce, BigInteger deadline, byte[] sign, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check owner
+        checkOwner(owner);
+
+        // check nonce
+        checkNonce(nonce);
+
+        // check deadline
+        checkDeadline(deadline);
+
+        if (null == ddcIds || ddcIds.isEmpty()) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
+        }
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(owner);
+        arrayList.add(ddcIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        arrayList.add(nonce);
+        arrayList.add(deadline);
+        arrayList.add(sign);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.META_BURN_BATCH, DDC1155Contract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 运营方可以通过调用该方法对旧DDC所对应的拥有者数据同步给链上。
+     * @param sender
+     * @param ddcIds
+     * @param owners
+     * @return
+     * @throws Exception
+     */
+    public String syncDDCOwners(String sender, List<BigInteger> ddcIds, List<List<String>> owners) throws Exception {
+        return syncDDCOwners(sender, ddcIds, owners, null);
+    }
+
+
+    /**
+     * 运营方可以通过调用该方法对旧DDC所对应的拥有者数据同步给链上。
+     * @param sender
+     * @param ddcIds
+     * @param owners
+     * @param options
+     * @return
+     * @throws Exception
+     */
+    public String syncDDCOwners(String sender, List<BigInteger> ddcIds, List<List<String>> owners, RequestOptions options) throws Exception {
+        //check params length
+        checkLen(ddcIds.size());
+
+        //check params length
+        checkLen(owners.size());
+
+        // check sender
+        checkSender(sender);
+
+        List<String> ddcIdsList = new ArrayList<>();
+        // check did
+        ddcIds.forEach(ddcId -> {
+            checkDdcId(ddcId);
+            ddcIdsList.add(String.valueOf(ddcId));
+        });
+
+        // check owner
+        owners.forEach(ownerList -> {
+            ownerList.forEach(this::checkOwner);
+        });
+
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(ddcIdsList.stream().collect(Collectors.joining(",")));
+        arrayList.add(owners);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC1155Functions.SYNC_DDC_OWNERS, DDC1155Contract);
         return (String) respJsonRpcBean.getResult();
     }
 
