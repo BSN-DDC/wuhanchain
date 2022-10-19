@@ -787,11 +787,6 @@ contract DDC1155 is
             _ddcAmts[ddcId] -= amount;
         }
         _balances[ddcId][owner] = 0;
-        delete _blacklist[ddcId];
-        if (_ddcAmts[ddcId] == 0) {
-            delete _ddcURIs[ddcId];
-            _ddcIds[ddcId] = false;
-        }
         _delDDCOwner(owner, ddcId);
         _pay(ddcId);
     }
