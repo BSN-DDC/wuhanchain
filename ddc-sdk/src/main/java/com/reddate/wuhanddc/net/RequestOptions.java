@@ -25,7 +25,7 @@ public class RequestOptions {
 
     private BigInteger nonce;
 
-    public RequestOptions(  BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int networkRetries) {
+    public RequestOptions(BigInteger gasPrice, BigInteger gasLimit, int connectTimeout, int networkRetries) {
         this.gasPrice = gasPrice;
         this.gasLimit = gasLimit;
         this.connectTimeout = connectTimeout;
@@ -71,7 +71,7 @@ public class RequestOptions {
 
         public RequestOptionsBuilder(DDCContract ddcContractConfig) {
             if (Objects.isNull(ddcContractConfig)) {
-                throw new DDCException(ErrorMessage.REQUEST_OPTIONS_INIT_FAILED);
+                throw new DDCException(ErrorMessage.CUSTOM_ERROR, "requestOptions init failed");
             }
             this.connectTimeout = DDCWuhan.getConnectTimeout();
             this.networkRetries = DDCWuhan.getMaxNetworkRetries();

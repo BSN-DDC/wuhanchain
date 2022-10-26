@@ -6,9 +6,9 @@ import com.reddate.wuhanddc.constant.ErrorMessage;
 import com.reddate.wuhanddc.dto.wuhanchain.RespJsonRpcBean;
 
 /**
- * ddc exception
+ * wuhanddc exception
  */
-public class DDCException extends RuntimeException{
+public class DDCException extends RuntimeException {
     private int code;
     private String msg;
 
@@ -18,13 +18,20 @@ public class DDCException extends RuntimeException{
         this.msg = errorMessage.getMessage();
     }
 
+    public DDCException(ErrorMessage errorMessage, String errorMessagePrefix) {
+        super(String.format(errorMessage.getMessage(), errorMessagePrefix));
+        this.code = errorMessage.getCode();
+        this.msg = super.getMessage();
+    }
+
+
     public DDCException(ErrorMessage errorMessage, RespJsonRpcBean.ErrorBean appendError) {
         super(errorMessage.getMessage());
         this.code = errorMessage.getCode();
         this.msg = JSONObject.toJSONString(appendError);
     }
 
-    public DDCException(int code, String msg){
+    public DDCException(int code, String msg) {
         super(msg);
         this.code = code;
         this.msg = msg;

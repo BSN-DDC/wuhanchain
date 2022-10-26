@@ -3,7 +3,7 @@ package com.reddate.wuhanddc.net;
 /**
  * @author wxq
  * @create 2021/12/20 10:50
- * @description ddc sdk request config
+ * @description wuhanddc sdk request config
  */
 public abstract class DDCWuhan {
     public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
@@ -17,6 +17,8 @@ public abstract class DDCWuhan {
 
     private static volatile String gatewayApiKey = null;
     private static volatile String gatewayUrl = null;
+    private static volatile String nonceManagerAddress = null;
+    private static volatile long txPoolSleepTime = 1000;
     private static volatile int connectTimeout = -1;
     private static volatile int readTimeout = -1;
     private static volatile int maxNetworkRetries = 0;
@@ -56,6 +58,22 @@ public abstract class DDCWuhan {
      */
     public static void setGatewayUrl(String url) {
         gatewayUrl = url;
+    }
+
+    public static String getNonceManagerAddress() {
+        return nonceManagerAddress;
+    }
+
+    public static void setNonceManagerAddress(String nonceManagerAddress) {
+        DDCWuhan.nonceManagerAddress = nonceManagerAddress;
+    }
+
+    public static long getTxPoolSleepTime() {
+        return txPoolSleepTime;
+    }
+
+    public static void setTxPoolSleepTime(long txPoolSleepTime) {
+        DDCWuhan.txPoolSleepTime = txPoolSleepTime;
     }
 
 

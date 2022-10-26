@@ -57,6 +57,16 @@ contract DDC721 is
     // Authority proxy contract
     IAuthority private _authorityProxy;
 
+    // EIP712
+    mapping(address => uint256) private _nonces;
+    bytes32 public DOMAIN_SEPARATOR;
+
+    // Mapping from ddc ID to locklist status
+    mapping(uint256 => mapping(address => bool)) private _locklist;
+
+    // Mapping hashtype to type hash
+    mapping(HashType => bytes32) private typeHashs;
+
     constructor() initializer {}
 
     function initialize() public initializer {
@@ -130,14 +140,39 @@ contract DDC721 is
     }
 
     /**
+     * @dev See {IDDC721-setMetaTypeHashArgs}.
+     */
+    function setMetaTypeHashArgs(HashType hashType, bytes32 hashValue)
+        public
+        override
+        onlyOwner
+    {
+        require(hashValue.length > 0, "DDC721: `hashValue` cannot be empty");
+        typeHashs[hashType] = hashValue;
+    }
+
+    /**
+     * @dev See {IDDC721-setMetaSeparatorArg}.
+     */
+    function setMetaSeparatorArg(bytes32 separator) public override onlyOwner {
+        require(separator.length != 0, "DDC721: `separator` cannot be empty");
+        DOMAIN_SEPARATOR = separator;
+    }
+
+    /**
      * @dev See {IDDC721-mint}.
      */
     function mint(address to, string memory ddcURI_) public override {
-        _requireSenderHasFuncPermission();
-        _requireAvailableDDCAccount(to);
-        _requireOnePlatform(_msgSender(), to);
-        uint256 ddcId = _lastDDCId + 1;
-        _mintAndPay(to, ddcId, ddcURI_);
+        uint256 ddcId = _mint(to, ddcURI_);
+        emit Transfer(address(0), to, ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-mintBatch}.
+     */
+    function mintBatch(address to, string[] memory ddcURIs) public override {
+        uint256[] memory ddcIds = _mintBatch(to, ddcURIs);
+        emit TransferBatch(_msgSender(), address(0), to, ddcIds);
     }
 
     /**
@@ -148,13 +183,26 @@ contract DDC721 is
         string memory _ddcURI,
         bytes memory _data
     ) public override {
-        _requireSenderHasFuncPermission();
-        _requireAvailableDDCAccount(to);
-        _requireOnePlatform(_msgSender(), to);
-        uint256 ddcId = _lastDDCId + 1;
-        _mintAndPay(to, ddcId, _ddcURI);
+        uint256 ddcId = _mint(to, _ddcURI);
+        emit Transfer(address(0), to, ddcId);
         require(
             _checkOnERC721Received(address(0), to, ddcId, _data),
+            "DDC721:transfer to non ERC721Receiver implementer"
+        );
+    }
+
+    /**
+     * @dev See {IDDC721-safeMintBatch}.
+     */
+    function safeMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        bytes memory data
+    ) public override {
+        uint256[] memory ddcIds = _mintBatch(to, ddcURIs);
+        emit TransferBatch(_msgSender(), address(0), to, ddcIds);
+        require(
+            _checkOnERC721BatchReceived(address(0), to, ddcIds, data),
             "DDC721:transfer to non ERC721Receiver implementer"
         );
     }
@@ -165,6 +213,7 @@ contract DDC721 is
     function setURI(uint256 ddcId, string memory ddcURI_) public override {
         _requireSenderHasFuncPermission();
         _requireAvailableDDC(ddcId);
+        _requireUnLockDDC(ddcId);
         _requireApprovedOrOwner(_msgSender(), ddcId);
         require(bytes(ddcURI_).length != 0, "DDC721:Can not be empty");
         require(
@@ -183,6 +232,7 @@ contract DDC721 is
         _requireSenderHasFuncPermission();
         _requireAvailableDDCAccount(to);
         _requireAvailableDDC(ddcId);
+        _requireUnLockDDC(ddcId);
         _requireOnePlatform(_msgSender(), to);
         address owner = DDC721.ownerOf(ddcId);
         require(to != owner, "DDC721:approval to current owner");
@@ -235,6 +285,13 @@ contract DDC721 is
     }
 
     /**
+     * @dev See {IDDC721-getNonce}.
+     */
+    function getNonce(address from) public view override returns (uint256) {
+        return _nonces[from];
+    }
+
+    /**
      * @dev See {IDDC721-safeTransferFrom}.
      */
     function safeTransferFrom(
@@ -243,13 +300,9 @@ contract DDC721 is
         uint256 ddcId,
         bytes memory data
     ) public override {
-        _requireSenderHasFuncPermission();
-        _requireAvailableDDCAccount(from);
-        _requireAvailableDDCAccount(to);
-        _requireAvailableDDC(ddcId);
-        _requireOnePlatformOrCrossPlatformApproval(from, to);
-        _requireApprovedOrOwner(_msgSender(), ddcId);
+        _requireTransferFromCheck(from, to, ddcId, _msgSender());
         _transfer(from, to, ddcId);
+        emit Transfer(from, to, ddcId);
         require(
             _checkOnERC721Received(from, to, ddcId, data),
             "DDC721:transfer to non ERC721Receiver implementer"
@@ -264,13 +317,9 @@ contract DDC721 is
         address to,
         uint256 ddcId
     ) public override {
-        _requireSenderHasFuncPermission();
-        _requireAvailableDDCAccount(from);
-        _requireAvailableDDCAccount(to);
-        _requireAvailableDDC(ddcId);
-        _requireOnePlatformOrCrossPlatformApproval(from, to);
-        _requireApprovedOrOwner(_msgSender(), ddcId);
+        _requireTransferFromCheck(from, to, ddcId, _msgSender());
         _transfer(from, to, ddcId);
+        emit Transfer(from, to, ddcId);
     }
 
     /**
@@ -299,16 +348,9 @@ contract DDC721 is
      * @dev See {IDDC721-burn}.
      */
     function burn(uint256 ddcId) public override {
-        _requireSenderHasFuncPermission();
-        _requireExists(ddcId);
-        _requireApprovedOrOwner(_msgSender(), ddcId);
+        _requireBurnCheck(ddcId, _msgSender());
         address owner = DDC721.ownerOf(ddcId);
-        // Clear approvals
-        _clearApprovals(ddcId);
-        // _ddc721Data.burn(owner, ddcId);
-        _balances[owner] -= 1;
-        delete _owners[ddcId];
-        _pay(ddcId);
+        _burn(owner, ddcId);
         emit Transfer(owner, address(0), ddcId);
     }
 
@@ -320,7 +362,6 @@ contract DDC721 is
             owner != address(0),
             "DDC721:balance query for the zero address"
         );
-        // return _ddc721Data.balanceOf(owner);
         return _balances[owner];
     }
 
@@ -337,7 +378,6 @@ contract DDC721 is
      * @dev See {IDDC721Metadata-name}.
      */
     function name() public view override returns (string memory) {
-        // return _ddc721Data.name();
         return _name;
     }
 
@@ -345,7 +385,6 @@ contract DDC721 is
      * @dev See {IDDC721Metadata-symbol}.
      */
     function symbol() public view override returns (string memory) {
-        // return _ddc721Data.symbol();
         return _symbol;
     }
 
@@ -359,8 +398,275 @@ contract DDC721 is
         returns (string memory)
     {
         _requireExists(ddcId);
-        // return _ddc721Data.ddcURI(ddcId);
         return _ddcURIs[ddcId];
+    }
+
+    /**
+     * @dev See {IDDC721-metaMint}.
+     */
+    function metaMint(
+        address to,
+        string memory ddcURI_,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(typeHashs[HashType.mint], to, ddcURI_, nonce, deadline)
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+
+        require(to == signer, "DDC721: invalid signature");
+
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+
+        uint256 ddcId = _mint(to, ddcURI_);
+
+        emit MetaTransfer(_msgSender(), address(0), to, ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-metaSafeMint}.
+     */
+    function metaSafeMint(
+        address to,
+        string memory ddcURI_,
+        bytes memory data_,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(
+                typeHashs[HashType.safeMint],
+                to,
+                ddcURI_,
+                nonce,
+                deadline
+            )
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+
+        require(to == signer, "DDC721: invalid signature");
+
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        uint256 ddcId = _mint(to, ddcURI_);
+        require(
+            _checkOnERC721Received(address(0), to, ddcId, data_),
+            "DDC721:transfer to non ERC721Receiver implementer"
+        );
+        emit MetaTransfer(_msgSender(), address(0), to, ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-metaMintBatch}.
+     */
+    function metaMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(
+                typeHashs[HashType.mintBatch],
+                to,
+                ddcURIs,
+                nonce,
+                deadline
+            )
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+        require(to == signer, "DDC721: invalid signature");
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        uint256[] memory ddcIds = _mintBatch(to, ddcURIs);
+        emit MetaTransferBatch(_msgSender(), address(0), to, ddcIds);
+    }
+
+    /**
+     * @dev See {IDDC721-metaSafeMintBatch}.
+     */
+    function metaSafeMintBatch(
+        address to,
+        string[] memory ddcURIs,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(
+                typeHashs[HashType.safeMintBatch],
+                to,
+                ddcURIs,
+                nonce,
+                deadline
+            )
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+        require(to == signer, "DDC721: invalid signature");
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        uint256[] memory ddcIds = _mintBatch(to, ddcURIs);
+        require(
+            _checkOnERC721BatchReceived(address(0), to, ddcIds, data),
+            "DDC721:transfer to non ERC721Receiver implementer"
+        );
+        emit MetaTransferBatch(_msgSender(), address(0), to, ddcIds);
+    }
+
+    /**
+     * @dev See {IDDC721-metaTransferFrom}.
+     */
+    function metaTransferFrom(
+        address from,
+        address to,
+        uint256 ddcId,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) public override {
+        bytes32 msgHash = keccak256(
+            abi.encode(
+                typeHashs[HashType.transfer],
+                from,
+                to,
+                ddcId,
+                nonce,
+                deadline
+            )
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+        _requireSignatureAccountIsApprovedOrOwner(signer, ddcId);
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        _requireTransferFromCheck(from, to, ddcId, signer);
+        _transfer(from, to, ddcId);
+        emit MetaTransfer(_msgSender(), from, to, ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-metaSafeTransferFrom}.
+     */
+    function metaSafeTransferFrom(
+        address from,
+        address to,
+        uint256 ddcId,
+        bytes memory data,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(
+                typeHashs[HashType.safeTransfer],
+                from,
+                to,
+                ddcId,
+                nonce,
+                deadline
+            )
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+        _requireSignatureAccountIsApprovedOrOwner(signer, ddcId);
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        _requireTransferFromCheck(from, to, ddcId, signer);
+        _transfer(from, to, ddcId);
+        require(
+            _checkOnERC721Received(from, to, ddcId, data),
+            "DDC721:transfer to non ERC721Receiver implementer"
+        );
+        emit MetaTransfer(_msgSender(), from, to, ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-metaBurn}.
+     */
+    function metaBurn(
+        uint256 ddcId,
+        uint256 nonce,
+        uint256 deadline,
+        bytes memory sign
+    ) external override {
+        bytes32 msgHash = keccak256(
+            abi.encode(typeHashs[HashType.burn], ddcId, nonce, deadline)
+        );
+        address signer = _getSignerAccount(sign, msgHash);
+        _requireSignatureAccountIsApprovedOrOwner(signer, ddcId);
+        // check permit signature
+        _requireValidSignature(signer, nonce, deadline);
+        _requireBurnCheck(ddcId, signer);
+        address owner = DDC721.ownerOf(ddcId);
+        _burn(owner, ddcId);
+        emit MetaTransfer(_msgSender(), owner, address(0), ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721-getLatestDDCId}.
+     */
+    function getLatestDDCId() public view override returns (uint256) {
+        return _lastDDCId;
+    }
+
+    /**
+     * @dev See {IDDC721Metadata-lock}.
+     */
+    function lock(uint256 ddcId) public override {
+        _requireSenderHasFuncPermission();
+        _requireAvailableDDC(ddcId);
+        _requireUnLockDDC(ddcId);
+        address owner = ownerOf(ddcId);
+        _locklist[ddcId][owner] = true;
+        emit Locklist(_msgSender(), ddcId);
+    }
+
+    /**
+     * @dev See {IDDC721Metadata-unlock}.
+     */
+    function unlock(uint256 ddcId) public override {
+        _requireSenderHasFuncPermission();
+        _requireAvailableDDC(ddcId);
+        _requireLockDDC(ddcId);
+        address owner = ownerOf(ddcId);
+        _locklist[ddcId][owner] = false;
+        emit UnLocklist(_msgSender(), ddcId);
+    }
+
+    /**
+     * @dev Creates a ddc for `to`.
+     */
+    function _mint(address to, string memory _ddcURI)
+        private
+        returns (uint256 ddcId)
+    {
+        _requireSenderHasFuncPermission();
+        _requireAvailableDDCAccount(to);
+        _requireOnePlatform(_msgSender(), to);
+        ddcId = _lastDDCId + 1;
+        _mintAndPay(to, ddcId, _ddcURI);
+    }
+
+    /**
+     * @dev Creates multiple ddcs for `to`.
+     */
+    function _mintBatch(address to, string[] memory ddcURIs)
+        private
+        returns (uint256[] memory ddcIds)
+    {
+        _requireSenderHasFuncPermission();
+        _requireAvailableDDCAccount(to);
+        _requireOnePlatform(_msgSender(), to);
+        ddcIds = new uint256[](ddcURIs.length);
+        for (uint256 i = 0; i < ddcURIs.length; i++) {
+            uint256 ddcId = _lastDDCId + 1;
+            ddcIds[i] = ddcId;
+            _mintAndPay(to, ddcId, ddcURIs[i]);
+        }
     }
 
     /**
@@ -377,18 +683,15 @@ contract DDC721 is
         _ddcURIs[ddcId] = ddcURI_;
         _lastDDCId = ddcId;
         _pay(ddcId);
-        emit Transfer(address(0), to, ddcId);
     }
 
     /**
      * @dev Transfers `ddcId` from `from` to `to`.
-     *  As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
      *
      * Requirements:
      * - `to` cannot be the zero address.
      * - `ddcId` ddc must be owned by `from`.
      *
-     * Emits a {Transfer} event.
      */
     function _transfer(
         address from,
@@ -399,20 +702,22 @@ contract DDC721 is
             DDC721.ownerOf(ddcId) == from,
             "DDC721:transfer of ddc that is not own"
         );
-        // Clear approvals from the previous owner
-        _clearApprovals(ddcId);
+        delete _ddcApprovals[ddcId];
         _balances[from] -= 1;
         _balances[to] += 1;
         _owners[ddcId] = to;
         _pay(ddcId);
-        emit Transfer(from, to, ddcId);
     }
 
     /**
-     * @dev Clear approvals from the previous owner
+     * @dev Burn DDC.
      */
-    function _clearApprovals(uint256 ddcId) private {
-        _ddcApprovals[ddcId] = address(0);
+    function _burn(address owner, uint256 ddcId) private {
+        delete _ddcApprovals[ddcId];
+        delete _ddcURIs[ddcId];
+        _balances[owner] -= 1;
+        delete _owners[ddcId];
+        _pay(ddcId);
     }
 
     /**
@@ -420,6 +725,44 @@ contract DDC721 is
      */
     function _pay(uint256 ddcId) private {
         _chargeProxy.pay(_msgSender(), msg.sig, ddcId);
+    }
+
+    /**
+     * @dev Requires check before DDC before transfer.
+     *
+     * Requirements:
+     * - `from` must be a available `ddc` account.
+     * - `to` must be a available `ddc` account.
+     * - `sender` must have function permission.
+     * - `from` and `to`  belong to the same platform.
+     */
+    function _requireTransferFromCheck(
+        address from,
+        address to,
+        uint256 ddcId,
+        address sender
+    ) private {
+        _requireSenderHasFuncPermission();
+        _requireAvailableDDCAccount(from);
+        _requireAvailableDDCAccount(to);
+        _requireAvailableDDC(ddcId);
+        _requireUnLockDDC(ddcId);
+        _requireOnePlatform(_msgSender(), from);
+        _requireOnePlatformOrCrossPlatformApproval(from, to);
+        _requireApprovedOrOwner(sender, ddcId);
+    }
+
+    /**
+     * @dev Requires check before DDC before burn.
+     *
+     * Requirements:
+     * - `sender` must have function permission.
+     * - `ddcId` must exists.
+     */
+    function _requireBurnCheck(uint256 ddcId, address sender) private {
+        _requireSenderHasFuncPermission();
+        _requireExists(ddcId);
+        _requireApprovedOrOwner(sender, ddcId);
     }
 
     /**
@@ -451,6 +794,48 @@ contract DDC721 is
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert("DDC721:transfer to non ERC721Receiver implementer");
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @dev Internal function to invoke {IERC721Receiver-onERC721BatchReceived} on a target address.
+     * The call is not executed if the target address is not a contract.
+     *
+     * @param from address representing the previous owner of the given ddc ID
+     * @param to target address that will receive the ddcs
+     * @param ddcIds uint256 array IDs of each ddc to be transferred
+     * @param _data bytes optional data to send along with the call
+     * @return bool whether the call correctly returned the expected magic value
+     */
+    function _checkOnERC721BatchReceived(
+        address from,
+        address to,
+        uint256[] memory ddcIds,
+        bytes memory _data
+    ) private returns (bool) {
+        if (to.isContract()) {
+            try
+                IERC721Receiver(to).onERC721BatchReceived(
+                    _msgSender(),
+                    from,
+                    ddcIds,
+                    _data
+                )
+            returns (bytes4 retval) {
+                return retval == IERC721Receiver.onERC721BatchReceived.selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert(
+                        "DDC721:transfer to non onERC721BatchReceived implementer"
+                    );
                 } else {
                     assembly {
                         revert(add(32, reason), mload(reason))
@@ -570,6 +955,32 @@ contract DDC721 is
     }
 
     /**
+     * @dev Requires a unlock ddc.
+     *
+     * Requirements:
+     * - ddc must be exist.
+     * - ddc must not be in the locklist.
+     */
+    function _requireUnLockDDC(uint256 ddcId) private view {
+        _requireExists(ddcId);
+        address owner = ownerOf(ddcId);
+        require(!_locklist[ddcId][owner], "DDC721:locked ddc");
+    }
+
+    /**
+     * @dev Requires a lcok ddc.
+     *
+     * Requirements:
+     * - ddc must be exist.
+     * - ddc must be in the locklist.
+     */
+    function _requireLockDDC(uint256 ddcId) private view {
+        _requireExists(ddcId);
+        address owner = ownerOf(ddcId);
+        require(_locklist[ddcId][owner], "DDC721:non-locked ddc");
+    }
+
+    /**
      * @dev Requires `from` and `to`  belong to the same platform.
      */
     function _requireOnePlatform(address from, address to) private view {
@@ -614,5 +1025,80 @@ contract DDC721 is
                 DDC721.isApprovedForAll(owner, spender),
             "DDC721:not owner nor approved"
         );
+    }
+
+    /**
+     * @dev Check if the signer account is approved or owner.
+     *
+     * Requirements:
+     * - `spender` is owner or approved.
+     */
+    function _requireSignatureAccountIsApprovedOrOwner(
+        address spender,
+        uint256 ddcId
+    ) private view {
+        address owner = DDC721.ownerOf(ddcId);
+        require(
+            spender == owner ||
+                DDC721.getApproved(ddcId) == spender ||
+                DDC721.isApprovedForAll(owner, spender),
+            "DDC721: invalid signature"
+        );
+    }
+
+    /**
+     * @dev Get signer account.
+     */
+    function _getSignerAccount(bytes memory sig, bytes32 msgHash)
+        private
+        view
+        returns (address)
+    {
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, msgHash)
+        );
+        address signer = _recoverSigner(digest, sig);
+        return signer;
+    }
+
+    /**
+     * @dev Requires a permit signature.
+     */
+    function _requireValidSignature(
+        address signer,
+        uint256 nonce,
+        uint256 deadline
+    ) private {
+        _requireAvailableDDCAccount(signer);
+        _requireOnePlatform(_msgSender(), signer);
+        require(
+            deadline == 0 || block.timestamp <= deadline,
+            "DDC721: expired signature"
+        );
+        _nonces[signer]++;
+        require(nonce == _nonces[signer], "DDC721:invalid nonce");
+    }
+
+    /**
+     * @dev recovers an address of the signer.
+     */
+    function _recoverSigner(bytes32 message, bytes memory sig)
+        private
+        pure
+        returns (address)
+    {
+        require(sig.length == 65, "DDC721:invalid signature length");
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        assembly {
+            // first 32 bytes, after the length prefix.
+            r := mload(add(sig, 32))
+            // second 32 bytes.
+            s := mload(add(sig, 64))
+            // final byte (first byte of the next 32 bytes).
+            v := byte(0, mload(add(sig, 96)))
+        }
+        return ecrecover(message, v, r, s);
     }
 }

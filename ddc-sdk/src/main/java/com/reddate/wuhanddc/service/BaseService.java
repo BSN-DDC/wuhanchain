@@ -16,25 +16,28 @@ import com.reddate.wuhanddc.listener.SignEventListener;
 import com.reddate.wuhanddc.net.DDCWuhan;
 import com.reddate.wuhanddc.net.RequestOptions;
 import com.reddate.wuhanddc.util.AnalyzeChainInfoUtils;
+import com.reddate.wuhanddc.util.AtomicNonceManagerUtils;
 import com.reddate.wuhanddc.util.HexUtils;
 import com.reddate.wuhanddc.util.http.RestTemplateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.web3j.abi.FunctionEncoder;
 import org.fisco.bcos.web3j.abi.TypeReference;
+import org.fisco.bcos.web3j.abi.datatypes.DynamicArray;
+import org.fisco.bcos.web3j.abi.datatypes.DynamicBytes;
 import org.fisco.bcos.web3j.abi.datatypes.Function;
 import org.fisco.bcos.web3j.abi.datatypes.Type;
+import org.fisco.bcos.web3j.abi.datatypes.generated.AbiTypes;
 import org.fisco.bcos.web3j.crypto.WalletUtils;
 import org.fisco.bcos.web3j.protocol.core.methods.response.AbiDefinition;
 import org.fisco.bcos.web3j.tx.AbiUtil;
 import org.fisco.bcos.web3j.tx.TransactionAssembleException;
-import org.fisco.bcos.web3j.tx.txdecode.BaseException;
-import org.fisco.bcos.web3j.tx.txdecode.ContractAbiUtil;
-import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
-import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
+import org.fisco.bcos.web3j.tx.txdecode.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
+import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
@@ -57,24 +60,35 @@ public class BaseService extends RestTemplateUtil {
     private final Logger logger = LoggerFactory.getLogger(BaseService.class);
     public static SignEventListener signEventListener;
 
+
+    public static AtomicNonceManagerUtils nonceManagerUtils = null;
+    /**
+     * web3j
+     */
+    public static Web3j web3j = null;
+
     public ReqJsonRpcBean assembleTransaction(String sender, String functionName, ArrayList<Object> params, RequestOptions requestOptions, DDCContract contract) throws Exception {
         // config check
         checkRequestOptions(requestOptions);
 
         if (Objects.isNull(contract)) {
-            throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "contract info");
         }
 
         // nonce
+//        if (Objects.isNull(nonceManagerUtils)) {
+//            // nonceManagerUtils = new AtomicNonceManagerUtils().instance(fromAddress, txPoolSleep);
+//            nonceManagerUtils = new AtomicNonceManagerUtils().instance();
+//        }
+//        BigInteger nonce = BigInteger.valueOf(nonceManagerUtils.getNonce());
         BigInteger nonce = (Objects.nonNull(requestOptions) && requestOptions.getNonce() != null) ? requestOptions.getNonce() : getTransactionCount(sender);
         if (Objects.isNull(nonce)) {
-            throw new DDCException(ErrorMessage.NONCE_GET_FAILED);
+            throw new DDCException(ErrorMessage.GET_FAILED, "nonce get");
         }
-
         // gasPrice
         BigInteger gasPrice = (Objects.nonNull(requestOptions) && requestOptions.getGasPrice() != null) ? requestOptions.getGasPrice() : getGasPrice();
         if (Objects.isNull(gasPrice)) {
-            throw new DDCException(ErrorMessage.GAS_PRICE_GET_FAILED);
+            throw new DDCException(ErrorMessage.GET_FAILED, "gasPrice get");
         }
 
         // encodeTransaction
@@ -85,9 +99,8 @@ public class BaseService extends RestTemplateUtil {
         String contractAddress = contract.getContractAddress();
         BigInteger gasLimit = (Objects.nonNull(requestOptions) && requestOptions.getGasLimit() != null) ? requestOptions.getGasLimit() : estimateGas(sender, contractAddress, gasPrice, encodeTransaction, requestOptions);
         if (Objects.isNull(gasLimit)) {
-            throw new DDCException(ErrorMessage.GAS_LIMIT_GET_FAILED);
+            throw new DDCException(ErrorMessage.GET_FAILED, "gasLimit get");
         }
-
         // build transaction
         RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, contractAddress, encodeTransaction);
 
@@ -99,7 +112,7 @@ public class BaseService extends RestTemplateUtil {
         String signedMessage = userEventListener.signEvent(signEvent);
 
         if (Strings.isEmpty(signedMessage)) {
-            throw new DDCException(ErrorMessage.SIGN_EVENT_LISTENER_RESPONSE_FAILED);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "signEventListener response failed");
         }
         return getReqJsonRpcBean(signedMessage);
     }
@@ -153,7 +166,7 @@ public class BaseService extends RestTemplateUtil {
      * @param hash
      * @return
      */
-    public Boolean getTransStatusByHash(String hash) throws Exception {
+    public Boolean getTransByStatus(String hash) throws Exception {
         ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_TRANSACTION_RECEIPT);
 
@@ -170,11 +183,11 @@ public class BaseService extends RestTemplateUtil {
         }
         String result = JSONObject.toJSONString(respJsonRpcBean.getResult());
         if (Strings.isEmpty(result)) {
-            throw new DDCException(ErrorMessage.TRANSACTION_RESULT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "transaction result");
         }
         JSONObject resultObject = JSONObject.parseObject(result);
         if (Objects.isNull(resultObject)) {
-            throw new DDCException(ErrorMessage.RESULT_FORMAT_CONVERSION_FAILED);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "result format conversion failed");
         }
         return "0x1".equalsIgnoreCase(resultObject.getString("status")) ? true : false;
     }
@@ -275,7 +288,7 @@ public class BaseService extends RestTemplateUtil {
         // decode
         InputAndOutputResult inputAndOutputResult = AnalyzeChainInfoUtils.analyzeTransactionOutput(contract.getContractAbi(), contract.getContractBytecode(), encodedFunction, respJsonRpcBean.getResult().toString());
         if (inputAndOutputResult.getResult().size() == 0) {
-            throw new DDCException(ErrorMessage.INPUT_AND_OUTPUT_RESULT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "InputAndOutputResult");
         }
         return inputAndOutputResult;
     }
@@ -293,7 +306,7 @@ public class BaseService extends RestTemplateUtil {
 
         // assembleTransaction
         ReqJsonRpcBean reqJsonRpcBean = assembleTransaction(sender, functionName, arrayList, options, contract);
-
+        logger.info("offline hash:" + Hash.sha3(reqJsonRpcBean.getParams().get(0).toString()));
         // send transaction
         RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, options);
 
@@ -321,17 +334,17 @@ public class BaseService extends RestTemplateUtil {
 
     private void checkRequestOptions(RequestOptions requestOptions) {
         if (Objects.isNull(signEventListener)) {
-            throw new DDCException(ErrorMessage.SIGN_EVENT_LISTENER_IS_EMPTY);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "not register sign event listener");
         }
         if (Strings.isEmpty(DDCWuhan.getGatewayUrl())) {
-            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "gateWayUrl");
         }
         if (Objects.nonNull(requestOptions)) {
             if (null != requestOptions.getGasLimit() && BigInteger.ZERO.compareTo(requestOptions.getGasLimit()) >= 0) {
-                throw new DDCException(ErrorMessage.GAS_LIMIT_DEFINITION_ERROR);
+                throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "gasLimit");
             }
             if (null != requestOptions.getGasPrice() && BigInteger.ZERO.compareTo(requestOptions.getGasPrice()) >= 0) {
-                throw new DDCException(ErrorMessage.GAS_PRICE_DEFINITION_ERROR);
+                throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "gasPrice");
             }
         }
     }
@@ -422,13 +435,42 @@ public class BaseService extends RestTemplateUtil {
             if (funcInputTypes.size() != funcParam.size()) {
                 throw new TransactionAssembleException("contract funcParam size is error");
             } else {
-                List<Type> finalInputs = AbiUtil.inputFormat(funcInputTypes, funcParam);
+                List<Type> finalInputs = inputFormatCustomize(funcInputTypes, funcParam);
                 List<String> funOutputTypes = AbiUtil.getFuncOutputType(abiDefinition);
                 List<TypeReference<?>> finalOutputs = AbiUtil.outputFormat(funOutputTypes);
                 Function function = new Function(funcName, finalInputs, finalOutputs);
                 return FunctionEncoder.encode(function);
             }
         }
+    }
+
+    public static List<Type> inputFormatCustomize(List<String> funcInputTypes, List<Object> params) throws BaseException {
+        List<Type> finalInputs = new ArrayList();
+        for (int i = 0; i < funcInputTypes.size(); ++i) {
+            Class<? extends Type> inputType;
+            Object input;
+            if ((funcInputTypes.get(i)).indexOf("[") != -1 && (funcInputTypes.get(i)).indexOf("]") != -1) {
+                List<Object> arrList = new ArrayList(Arrays.asList(params.get(i).toString().split(",", -1)));
+                List<Type> arrParams = new ArrayList();
+
+                for (int j = 0; j < arrList.size(); ++j) {
+                    inputType = (Class<? extends Type>) AbiTypes.getType((funcInputTypes.get(i)).substring(0, (funcInputTypes.get(i)).indexOf("[")));
+                    input = ContractTypeUtil.parseByType((funcInputTypes.get(i)).substring(0, (funcInputTypes.get(i)).indexOf("[")), arrList.get(j).toString());
+                    arrParams.add(ContractTypeUtil.generateClassFromInput(input.toString(), inputType));
+                }
+                finalInputs.add(new DynamicArray(arrParams));
+            } else {
+                inputType = (Class<? extends Type>) AbiTypes.getType(funcInputTypes.get(i));
+                // 兼容byte[]，避免调用toString()
+                if (DynamicBytes.class.isAssignableFrom(inputType)) {
+                    finalInputs.add(new DynamicBytes((byte[])params.get(i)));
+                } else {
+                    input = ContractTypeUtil.parseByType(funcInputTypes.get(i), params.get(i).toString());
+                    finalInputs.add(ContractTypeUtil.generateClassFromInput(input.toString(), inputType));
+                }
+            }
+        }
+        return finalInputs;
     }
 
     private ReqJsonRpcBean assembleCallTransaction(String encodedFunction, DDCContract contract) {
@@ -450,7 +492,7 @@ public class BaseService extends RestTemplateUtil {
             if (funcInputTypes.size() != funcParam.size()) {
                 throw new TransactionAssembleException("contract funcParam size is error");
             } else {
-                List<Type> finalInputs = AbiUtil.inputFormat(funcInputTypes, funcParam);
+                List<Type> finalInputs = inputFormatCustomize(funcInputTypes, funcParam);
                 List<String> funOutputTypes = AbiUtil.getFuncOutputType(abiDefinition);
                 List<TypeReference<?>> finalOutputs = AbiUtil.outputFormat(funOutputTypes);
                 return new Function(funcName, finalInputs, finalOutputs);
@@ -464,11 +506,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkSender(String sender) {
         if (Strings.isEmpty(sender)) {
-            throw new DDCException(ErrorMessage.SENDER_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "sender");
         }
 
         if (!WalletUtils.isValidAddress(sender)) {
-            throw new DDCException(ErrorMessage.SENDER_IS_NOT_A_STANDARD_ADDRESS_format);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "sender");
         }
     }
 
@@ -479,11 +521,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkOwner(String owner) {
         if (Strings.isEmpty(owner)) {
-            throw new DDCException(ErrorMessage.OWNER_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "owner");
         }
 
         if (!WalletUtils.isValidAddress(owner)) {
-            throw new DDCException(ErrorMessage.OWNER_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "owner");
         }
     }
 
@@ -494,26 +536,56 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkOperator(String operator) {
         if (Strings.isEmpty(operator)) {
-            throw new DDCException(ErrorMessage.OPERATOR_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "operator");
         }
 
         if (!WalletUtils.isValidAddress(operator)) {
-            throw new DDCException(ErrorMessage.OPERATOR_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "operator");
         }
     }
 
     /**
-     * check ddc id
+     * check wuhanddc id
      *
      * @param ddcId
      */
     public void checkDdcId(BigInteger ddcId) {
         if (null == ddcId) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcId");
         }
 
         if (BigInteger.ZERO.compareTo(ddcId) >= 0) {
-            throw new DDCException(ErrorMessage.DDC_ID_LT_ZERO);
+            throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "ddcId");
+        }
+    }
+
+    /**
+     * check meta transaction nonce
+     *
+     * @param nonce
+     */
+    public void checkNonce(BigInteger nonce) {
+        if (null == nonce) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "meta transaction nonce");
+        }
+
+        if (BigInteger.ZERO.compareTo(nonce) >= 0) {
+            throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "meta transaction nonce");
+        }
+    }
+
+    /**
+     * check meta transaction deadline
+     *
+     * @param deadline
+     */
+    public void checkDeadline(BigInteger deadline) {
+        if (null == deadline) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "meta transaction deadline");
+        }
+
+        if (BigInteger.ZERO.compareTo(deadline) >= 0) {
+            throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "meta transaction deadline");
         }
     }
 
@@ -524,7 +596,7 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkDdcURI(String ddcURI) {
         if (null == ddcURI) {
-            throw new DDCException(ErrorMessage.DDC_URI_IS_EMPTY);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "ddcURI cannot be null, but can be an empty string");
         }
     }
 
@@ -534,11 +606,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkDdcAddr(String ddcAddr) {
         if (Strings.isEmpty(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "ddcAddr");
         }
 
         if (!WalletUtils.isValidAddress(ddcAddr)) {
-            throw new DDCException(ErrorMessage.DDC_ADDR_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "ddcAddr");
         }
     }
 
@@ -549,11 +621,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkSig(String sig) {
         if (Strings.isEmpty(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "sig");
         }
 
         if (!HexUtils.isValid4ByteHash(sig)) {
-            throw new DDCException(ErrorMessage.SIG_IS_NOT_4BYTE_HASH);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "sig is not 4 byte hash");
         }
     }
 
@@ -564,11 +636,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkAmount(BigInteger amount) {
         if (amount == null) {
-            throw new DDCException(ErrorMessage.AMOUNT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "amount");
         }
 
         if (BigInteger.ZERO.compareTo(amount) >= 0) {
-            throw new DDCException(ErrorMessage.AMOUNT_LT_ZERO);
+            throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "amount");
         }
     }
 
@@ -579,10 +651,10 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkFrom(String from) {
         if (Strings.isEmpty(from)) {
-            throw new DDCException(ErrorMessage.FROM_ACCOUNT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "from account");
         }
         if (!WalletUtils.isValidAddress(from)) {
-            throw new DDCException(ErrorMessage.FROM_ACCOUNT_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "from account");
         }
     }
 
@@ -593,10 +665,10 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkTo(String to) {
         if (Strings.isEmpty(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "to account");
         }
         if (!WalletUtils.isValidAddress(to)) {
-            throw new DDCException(ErrorMessage.TO_ACCOUNT_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "to account");
         }
     }
 
@@ -607,11 +679,38 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkAccount(String account) {
         if (Strings.isEmpty(account)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "account");
         }
 
         if (!WalletUtils.isValidAddress(account)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "account");
+        }
+    }
+
+    /**
+     * check Account
+     *
+     * @param account
+     */
+    public void checkAccount(String account, String errorMessagePrefix) {
+        if (Strings.isEmpty(account)) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, errorMessagePrefix);
+        }
+
+        if (!WalletUtils.isValidAddress(account)) {
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, errorMessagePrefix);
+        }
+    }
+
+    /**
+     * Check that the parameter is not empty
+     *
+     * @param params
+     * @param errorMessagePrefix
+     */
+    public void checkNonEmpty(String params, String errorMessagePrefix) {
+        if (Strings.isEmpty(params)) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, errorMessagePrefix);
         }
     }
 
@@ -622,11 +721,11 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkAccAddr(String accAddr) {
         if (org.fisco.bcos.web3j.utils.Strings.isEmpty(accAddr)) {
-            throw new DDCException(ErrorMessage.ACC_ADDR_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "accAddr");
         }
 
         if (!WalletUtils.isValidAddress(accAddr)) {
-            throw new DDCException(ErrorMessage.ACC_ADDR_IS_NOT_ADDRESS_FORMAT);
+            throw new DDCException(ErrorMessage.NOT_STANDARD_ADDRESS_FORMAT, "accAddr");
         }
     }
 
@@ -637,7 +736,28 @@ public class BaseService extends RestTemplateUtil {
      */
     public void checkAccountName(String accountName) {
         if (Strings.isEmpty(accountName)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_NAME_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "accountName");
+        }
+    }
+
+    /***
+     * check Length
+     * @param len
+     */
+    public void checkLen(int len) {
+        if (len <= 0) {
+            throw new DDCException(ErrorMessage.LESS_THAN_ZERO, "length");
+        }
+    }
+
+    /**
+     * check did
+     *
+     * @param did
+     */
+    public void checkDID(String did) {
+        if (Strings.isEmpty(did)) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "DID");
         }
     }
 
@@ -655,7 +775,7 @@ public class BaseService extends RestTemplateUtil {
             EthBlock.TransactionObject transaction = transactionResult.get();
             TransactionReceipt receipt = getTransactionReceipt(transaction.getHash());
             if (Objects.isNull(receipt)) {
-                throw new DDCException(ErrorMessage.GET_TRANSACTION_RECEIPT_ERROR);
+                throw new DDCException(ErrorMessage.IS_EMPTY, "transactionReceipt");
             }
             List<Log> logList = receipt.getLogs();
             for (Log log : logList) {
@@ -670,7 +790,7 @@ public class BaseService extends RestTemplateUtil {
                 String contractByteCode = contract.getContractBytecode();
 
                 if (Strings.isEmpty(contractAbi) || Strings.isEmpty(contractByteCode)) {
-                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                    throw new DDCException(ErrorMessage.IS_EMPTY, "contract info");
                 }
 
                 List<Log> logInfo = new ArrayList<>();
@@ -678,7 +798,7 @@ public class BaseService extends RestTemplateUtil {
                 Map<String, List<List<EventResultEntity>>> map = analyzeEventLog(contractAbi, contractByteCode, JSONObject.toJSONString(logInfo));
                 // Event to Object
                 if (eventBeanMap.isEmpty()) {
-                    throw new DDCException(ErrorMessage.CONTRACT_INFO_IS_EMPTY);
+                    throw new DDCException(ErrorMessage.IS_EMPTY, "contract info");
                 }
                 // 事件合约地址
                 String contractAddress = log.getAddress();
