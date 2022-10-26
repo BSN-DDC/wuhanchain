@@ -6,11 +6,18 @@
 #### 参数信息
 
 - 以太坊主网侧链 ID：`12305`
+
 - 武汉链侧链 ID：`1003650780676003`
+
 - 武汉链跨链管理合约地址：`0x52ef671540086AEc1774aFbe26E0DB9061aeCBE2`
+
 - 以太坊主网跨链管理合约地址：`0x49f264851241694f80EACF616AA888eEAE5FB7E4`
+
 - 以太坊主网 NFT 合约地址：`0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9`
 
+- 以太坊主网 ERC721 合约地址：`0xB476114385cB25DDB3E6d5EE74b9DC1011e28805`
+
+**请注意：** 以太坊主网上，跨链管理合约直接调用 NFT 合约，NFT 合约内部调用 ERC721 合约。
 
 
 #### 1.更新本地仓库
@@ -59,9 +66,11 @@ log.info(JSON.toJSONString(result));
 
 **请注意：**
 
-- 以太坊主网在 BSN 中继链上的侧链 ID 为 12305，此为固定值不会发生变更。
-- 我们在以太坊主网部署的 NFT 合约地址为 `0xEeB4869FBe0FA8C6A1886c3e2B6fE2d01cc891B9`，您可直接使用。如果您有自己部署的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码。如果您有自定义合约的需求，请参见[以太坊主网 NFT 合约开发指南](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%BB%E7%BD%91NFT%E5%90%88%E7%BA%A6%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md) 。
+- BSN 体系内以太坊主网的侧链 ID 为固定值不会发生变更。
 
+- 如果您有自己部署 NFT 合约的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码进行部署，部署成本约 500 元人民币（以太币 1300 美元计算），具体费用与以太坊主网环境及以太币有关。
+
+- 如果您有自定义 NFT 合约的需求，请参见[以太坊主网 NFT 合约开发指南](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%BB%E7%BD%91NFT%E5%90%88%E7%BA%A6%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md) 按其定义进行开发。
 
 
 #### 5.获取跨链服务 Token
@@ -73,12 +82,10 @@ log.info(JSON.toJSONString(result));
 #### 7.查询跨链数据
 继续对接【**查询跨链数据**】接口，得到待签名的数据。
 
-**请注意：**
-
-该接口仅可查询待签名的跨链数据。
+**请注意：**该接口仅可查询待签名的跨链数据。
 
 #### 8.对跨链数据进行签名
-- 跨链数据的数据结构如下，其定义详情请参见`github.com/ethereum/go-ethereum/core/types`。请注意：`To`表示以太坊上的跨链管理合约地址`0x49f264851241694f80EACF616AA888eEAE5FB7E4`，如发生变更，BSN-DDC将会提前在迭代公告内说明 。
+- 跨链数据的数据结构如下，其定义详情请参见`github.com/ethereum/go-ethereum/core/types`
 
 ```go
 type DynamicFeeTx struct {
@@ -98,6 +105,8 @@ type DynamicFeeTx struct {
 	S *big.Int `json:"s" gencodec:"required"`
 }
 ```
+
+**请注意：** `To`表示以太坊上的跨链管理合约地址`0x49f264851241694f80EACF616AA888eEAE5FB7E4`，该地址如发生变更，我们将会在 BSN-DDC 的迭代公告内提前说明。
 
 - 签名方法请参见下述代码
 
@@ -193,7 +202,21 @@ func SignTx(dynamicFeeTx *types.DynamicFeeTx) (signedtx *types.Transaction, err 
 
 - 如果您不通过此接口向以太坊主网发起交易，那么以太坊上交易成功，则 BSN-DDC 跨链服务也可识别，但是如果以太坊上交易失败，那么跨链服务无法识别，该笔跨链数据的跨链状态仍为“跨链中”，所以不会向您发起跨链业务费的退款。
 
-- 如遇没有退跨链业务费的问题，您可以继续通过此接口再次向以太坊提交交易，BSN-DDC 跨链服务将自动识别并更新跨链状态，如跨链失败则向您发起跨链业务费的退款。
+- 如遇遇到没有退跨链业务费的问题，您可以继续通过此接口再次向以太坊提交交易，BSN-DDC 跨链服务将自动识别并更新跨链状态，如跨链失败则向您发起跨链业务费的退款。
 
+- 从发送签名交易到以太坊主网打包落块，大约需要 7 分钟，具体时间跟以太坊主网环境有关。
 
+- 一笔官方 DDC 的跨链数据，在以太坊主网上的交易 Gas 大约为 40 元人民币（以太币 1300 美元计算），具体费用与以太坊主网环境及以太币有关。
 
+#### 特别说明！！！
+如果您期望在 OpenSea 上售卖/购买官方 DDC，需注意以下几点： 
+
+- 调用官方 DDC 的生成方法时，URI 必须符合 [Metadata标准](https://docs.opensea.io/docs/metadata-standards)，同时 URI 的参数值应为公网可访问的 HTTPS 地址（OSS、IPFS、自搭建的服务地址等都可以）例如：`https://my-json-server.typicode.com/Arkln/demo/tokens/0`
+ 
+- NFT 合约需要符合 [OpenSea 的要求](https://support.opensea.io/hc/en-us/articles/4403934341907-How-do-I-import-my-contract-automatically-) ，否则在 OpenSea 上也无法查到铸造的 Token。
+
+- 通过 BSN 的跨链机制到 OpenSea 上的 DDC，OpenSea 不收取“创作费”。
+
+- 如果您自己部署 NFT 合约，需要对合约进行验证，详情请参加 [etherscan 说明](https://info.etherscan.com/types-of-contract-verification/)；需要对合约定义名称，详情请参考 [stackoverflow](https://stackoverflow.com/questions/68891144/how-to-fix-unidentified-contract-opensea-is-unable-to-understand-erc1155) 的介绍。
+
+-
