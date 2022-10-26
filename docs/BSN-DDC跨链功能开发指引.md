@@ -218,5 +218,3 @@ func SignTx(dynamicFeeTx *types.DynamicFeeTx) (signedtx *types.Transaction, err 
 - 通过 BSN 的跨链机制到 OpenSea 上的 DDC，OpenSea 不收取“创作费”。
 
 - 如果您自己部署 NFT 合约，需要对合约进行验证，详情请参加 [etherscan 说明](https://info.etherscan.com/types-of-contract-verification/)；需要对合约定义名称，详情请参考 [stackoverflow](https://stackoverflow.com/questions/68891144/how-to-fix-unidentified-contract-opensea-is-unable-to-understand-erc1155) 的介绍。
-
--
