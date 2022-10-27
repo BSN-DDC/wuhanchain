@@ -186,4 +186,22 @@ library AddressUpgradeable {
             }
         }
     }
+	
+    /* @notice      Convert address to bytes
+    *  @param _addr Address need to be converted
+    *  @return      Converted bytes from address
+    */
+    function addressToBytes(address _addr) internal pure returns (bytes memory bs){
+        assembly {
+            // Get a location of some free memory and store it in result as
+            // Solidity does for memory variables.
+            bs := mload(0x40)
+            // Put 20 (address byte length) at the first word, the length of bytes for uint256 value
+            mstore(bs, 0x14)
+            // logical shift left _a by 12 bytes, change _a from right-aligned to left-aligned
+            mstore(add(bs, 0x20), shl(96, _addr))
+            // Update the free-memory pointer by padding our last write location to 32 bytes
+            mstore(0x40, add(bs, 0x40))
+       }
+    }
 }
