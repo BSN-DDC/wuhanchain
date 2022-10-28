@@ -68,7 +68,7 @@ log.info(JSON.toJSONString(result));
 
 - BSN 体系内以太坊主网的侧链 ID 为固定值不会发生变更。
 
-- 如果您有自己部署 NFT 合约的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码进行部署，部署成本约 10 元人民币（以太币 1300 美元计算），具体费用与以太坊主网环境及以太币有关。
+- 如果您有自己部署 NFT 合约的需求，请从`https://github.com/BSN-DDC/wuhanchain.git`拉取合约代码进行部署。
 
 - 如果您有自定义 NFT 合约的需求，请参见[以太坊主网 NFT 合约开发指南](https://github.com/BSN-DDC/wuhanchain/blob/master/docs/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%BB%E7%BD%91NFT%E5%90%88%E7%BA%A6%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md) 按其定义进行开发。
 
@@ -206,7 +206,7 @@ func SignTx(dynamicFeeTx *types.DynamicFeeTx) (signedtx *types.Transaction, err 
 
 - 从发送签名交易到以太坊主网打包落块，一般需要 2～7 分钟，具体时间跟以太坊主网环境有关。
 
-- 一笔官方 DDC 的跨链数据，在以太坊主网上的交易 Gas 大约为 40 元人民币（以太币 1300 美元计算），具体费用与以太坊主网环境及以太币有关。
+- 一笔官方 DDC 的跨链数据，在以太坊主网上的交易 Gas 约几十元人民币，具体费用跟以太坊主网环境有关。
 
 #### 特别说明！！！
 如果您期望在 OpenSea 上售卖/购买官方 DDC，需注意以下几点： 
