@@ -8,6 +8,8 @@ package com.reddate.wuhanddc.constant;
 public class DDC721Functions {
     public static final String MINT = "mint";
     public static final String SAFE_MINT = "safeMint";
+    public static final String SAFE_MINT_BATCH = "safeMintBatch";
+    public static final String MINT_BATCH = "mintBatch";
     public static final String APPROVE = "approve";
     public static final String GET_APPROVED = "getApproved";
     public static final String SET_APPROVAL_FOR_ALL = "setApprovalForAll";
@@ -23,9 +25,24 @@ public class DDC721Functions {
     public static final String SYMBOL = "symbol";
     public static final String DDC_URI = "ddcURI";
     public static final String SET_URI = "setURI";
+    public static final String SET_NAME_AND_SYMBOL = "setNameAndSymbol";
+    public static final String GET_LATEST_DDC_ID = "getLatestDDCId";
 
-    public static final String DDC_721_TRANSFER_EVENT = "Transfer(address,address,uint256)";
-    public static final String DDC_721_FREEZE_EVENT = "EnterBlacklist(address,uint256)";
-    public static final String DDC_721_UNFREEZE_EVENT = "ExitBlacklist(address,uint256)";
-    public static final String DDC_721_SET_URI_EVENT = "SetURI(uint256,string)";
+    public static final String META_MINT = "metaMint";
+    public static final String META_SAFE_MINT = "metaSafeMint";
+    public static final String META_MINT_BATCH = "metaMintBatch";
+    public static final String META_SAFE_MINT_BATCH = "metaSafeMintBatch";
+    public static final String META_TRANSFER_FROM = "metaTransferFrom";
+    public static final String META_SAFE_TRANSFER_FROM = "metaSafeTransferFrom";
+    public static final String META_BURN = "metaBurn";
+    public static final String GET_NONCE = "getNonce";
+
+    public static final String TRANSFER_EVENT = "Transfer(address,address,uint256)";
+    public static final String FREEZE_EVENT = "EnterBlacklist(address,uint256)";
+    public static final String UNFREEZE_EVENT = "ExitBlacklist(address,uint256)";
+    public static final String SET_URI_EVENT = "SetURI(uint256,string)";
+    public static final String LOCK_LIST_EVENT = "Locklist(address,uint256)";
+    public static final String UNLOCK_LIST_EVENT = "UnLocklist(address,uint256)";
+    public static final String META_TRANSFER_EVENT = "MetaTransfer(address,address,address,uint256)";
+
 }

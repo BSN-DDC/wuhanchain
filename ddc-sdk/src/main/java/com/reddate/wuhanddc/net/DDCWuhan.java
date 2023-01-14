@@ -1,13 +1,16 @@
 package com.reddate.wuhanddc.net;
 
+import java.math.BigInteger;
+
 /**
  * @author wxq
  * @create 2021/12/20 10:50
- * @description ddc sdk request config
+ * @description wuhanddc sdk request config
  */
 public abstract class DDCWuhan {
     public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
     public static final int DEFAULT_READ_TIMEOUT = 80 * 1000;
+    public static final BigInteger DEFAULT_GAS_PRICE = BigInteger.valueOf(1000000000);
 
     public static final int CONNECTION_KEEP_ALIVE_TIME = 30 * 1000;
     public static final int POOLING_CONNECTION_MANAGER_MAX_TOTAL = 1000;
@@ -17,9 +20,12 @@ public abstract class DDCWuhan {
 
     private static volatile String gatewayApiKey = null;
     private static volatile String gatewayUrl = null;
+    private static volatile String nonceManagerAddress = null;
+    private static volatile long txPoolSleepTime = 1000;
     private static volatile int connectTimeout = -1;
     private static volatile int readTimeout = -1;
     private static volatile int maxNetworkRetries = 0;
+    private static volatile BigInteger gasPrice = null;
 
 
     /**
@@ -56,6 +62,22 @@ public abstract class DDCWuhan {
      */
     public static void setGatewayUrl(String url) {
         gatewayUrl = url;
+    }
+
+    public static String getNonceManagerAddress() {
+        return nonceManagerAddress;
+    }
+
+    public static void setNonceManagerAddress(String nonceManagerAddress) {
+        DDCWuhan.nonceManagerAddress = nonceManagerAddress;
+    }
+
+    public static long getTxPoolSleepTime() {
+        return txPoolSleepTime;
+    }
+
+    public static void setTxPoolSleepTime(long txPoolSleepTime) {
+        DDCWuhan.txPoolSleepTime = txPoolSleepTime;
     }
 
 
@@ -122,5 +144,16 @@ public abstract class DDCWuhan {
      */
     public static void setMaxNetworkRetries(final int numRetries) {
         maxNetworkRetries = numRetries;
+    }
+
+    public static BigInteger getGasPrice() {
+        if (gasPrice == null) {
+            return DEFAULT_GAS_PRICE;
+        }
+        return gasPrice;
+    }
+
+    public static void setGasPrice(BigInteger gasPrice) {
+        DDCWuhan.gasPrice = gasPrice;
     }
 }

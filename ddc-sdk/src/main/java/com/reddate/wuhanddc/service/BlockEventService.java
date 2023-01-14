@@ -1,9 +1,12 @@
 package com.reddate.wuhanddc.service;
 
 import com.reddate.wuhanddc.constant.ErrorMessage;
+import com.reddate.wuhanddc.dto.config.DDCContract;
 import com.reddate.wuhanddc.dto.ddc.BaseEventBean;
 import com.reddate.wuhanddc.exception.DDCException;
 import com.reddate.wuhanddc.net.DDCWuhan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -12,8 +15,12 @@ import org.web3j.utils.Strings;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.reddate.wuhanddc.constant.ContractConfig.DDCContracts;
 
 /**
  * @author wxq
@@ -21,22 +28,19 @@ import java.util.Objects;
  * @description BlockEventService
  */
 public class BlockEventService extends BaseService {
-    /**
-     * web3j
-     */
-    private static Web3j web3j = null;
+    private final Logger logger = LoggerFactory.getLogger(BlockEventService.class);
 
     /**
      * get block event
      *
      * @param blockNum blockNumber
      * @param <T>
-     * @return ddc official contract event data
+     * @return wuhanddc official contract event data
      * @throws Exception
      */
     public <T extends BaseEventBean> ArrayList<T> getBlockEvent(BigInteger blockNum) throws Exception {
         if (Strings.isEmpty(DDCWuhan.getGatewayUrl())) {
-            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "gateWayUrl");
         }
         HttpService httpService = new HttpService(DDCWuhan.getGatewayUrl());
         String apiKey = DDCWuhan.getGatewayApiKey();
@@ -50,7 +54,7 @@ public class BlockEventService extends BaseService {
         // get block
         EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNum), true).send();
         if (Objects.isNull(ethBlock)) {
-            throw new DDCException(ErrorMessage.GET_BLOCK_BY_NUMBER_ERROR);
+            throw new DDCException(ErrorMessage.CUSTOM_ERROR, "getBlockByNumber failed");
         }
         if (Objects.nonNull(ethBlock.getError())) {
             throw new DDCException(ErrorMessage.ETH_PROXY_ERROR);
@@ -62,7 +66,9 @@ public class BlockEventService extends BaseService {
 
         // response
         ArrayList<T> arrayList = new ArrayList<>();
-        transactionData(txTimestamp, transactions, arrayList);
+        if (transactions.size() > 0) {
+            transactionData(txTimestamp, transactions, arrayList);
+        }
         return arrayList;
     }
 

@@ -104,7 +104,7 @@ public class RestTemplateUtil {
 
         String url = DDCWuhan.getGatewayUrl();
         if (Strings.isEmpty(url)) {
-            throw new DDCException(ErrorMessage.EMPTY_GATEWAY_URL_SPECIFIED);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "gateWayUrl");
         }
         if (Objects.nonNull(options)) {
             long timeout = options.getConnectTimeout() != 0 ? options.getConnectTimeout() : DDCWuhan.getConnectTimeout();

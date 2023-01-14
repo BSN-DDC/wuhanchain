@@ -1,5 +1,6 @@
 package com.reddate.wuhanddc.service;
 
+import com.google.common.collect.Lists;
 import com.reddate.wuhanddc.constant.AuthorityFunctions;
 import com.reddate.wuhanddc.constant.ErrorMessage;
 import com.reddate.wuhanddc.dto.config.DDCContract;
@@ -10,18 +11,19 @@ import com.reddate.wuhanddc.dto.wuhanchain.RespJsonRpcBean;
 import com.reddate.wuhanddc.exception.DDCException;
 import com.reddate.wuhanddc.net.RequestOptions;
 import org.fisco.bcos.web3j.abi.datatypes.Address;
-import org.fisco.bcos.web3j.abi.datatypes.Utf8String;
 import org.fisco.bcos.web3j.tx.txdecode.InputAndOutputResult;
 import org.web3j.utils.Strings;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.reddate.wuhanddc.constant.ContractConfig.DDCContracts;
 import static java.lang.String.valueOf;
 
 /**
- * ddc authority
+ * wuhanddc authority
  *
  * @author wxq
  */
@@ -34,7 +36,140 @@ public class AuthorityService extends BaseService {
     }
 
     /**
-     * 平台方可以通过调用该方法进行DDC账户信息的创建，上级角色可进行下级角色账户的操作，平台方通过该方法只能添加终端账户。
+     * 运营方可以通过调用该方法设置平台方添加链账户开关。
+     *
+     * @param sender The address the transaction is sent from.
+     * @param isOpen state
+     * @return 返回交易哈希
+     * @throws Exception
+     */
+    public String setSwitcherStateOfPlatform(String sender, boolean isOpen) throws Exception {
+        return setSwitcherStateOfPlatform(sender, isOpen, null);
+    }
+
+    public String setSwitcherStateOfPlatform(String sender, boolean isOpen, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(isOpen);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.SET_SWITCHER_STATE_OF_PLATFORM, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 运营方可以通过调用该方法查询平台方添加链账户开关状态。
+     *
+     * @return 返回state信息
+     * @throws Exception
+     */
+    public boolean switcherStateOfPlatform() throws Exception {
+        return switcherStateOfPlatform(null);
+    }
+
+    public boolean switcherStateOfPlatform(RequestOptions options) throws Exception {
+        // send call tran and decode output
+        InputAndOutputResult inputAndOutputResult = sendCallTransactionAndDecodeOutput(options, null, AuthorityFunctions.SWITCHER_STATE_OF_PLATFORM, authorityContract);
+        return (Boolean) inputAndOutputResult.getResult().get(0).getData();
+    }
+
+    /**
+     * 平台方可以通过调用该方法直接对平台方或平台方的终端用户进行创建。
+     *
+     * @param sender      The address the transaction is sent from.
+     * @param account     DDC链账户地址
+     * @param accountName DDC账户对应的账户名称
+     * @param accountDID  该普通账户对应的DID
+     * @return 返回交易哈希
+     * @throws Exception
+     */
+
+    public String addAccountByPlatform(String sender, String account, String accountName, String accountDID) throws Exception {
+        return addAccountByPlatform(sender, account, accountName, accountDID, null);
+    }
+
+    public String addAccountByPlatform(String sender, String account, String accountName, String accountDID, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // check account
+        checkAccount(account);
+
+        // check account name
+        checkAccountName(accountName);
+
+        if (Strings.isEmpty(accountDID)) {
+            accountDID = "";
+        }
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(account);
+        arrayList.add(accountName);
+        arrayList.add(accountDID);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_ACCOUNT_BY_PLATFORM, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 平台方可以通过调用该方法进行DDC链账户信息的批量创建，上级角色可进行下级角色账户的操作，平台方通过该方法只能添加终端账户。
+     *
+     * @param sender   The address the transaction is sent from.
+     * @param accounts DDC链账户
+     * @return 返回交易哈希
+     * @throws Exception
+     */
+
+    public String addBatchAccountByPlatform(String sender, List<AccountInfo> accounts) throws Exception {
+        return addBatchAccountByPlatform(sender, accounts, null);
+    }
+
+    public String addBatchAccountByPlatform(String sender, List<AccountInfo> accounts, RequestOptions options) throws Exception {
+        //check params length
+        int len = accounts.size();
+        checkLen(len);
+
+        // check sender
+        checkSender(sender);
+
+        List<String> accountArray = Lists.newArrayList();
+        List<String> accountNameArray = Lists.newArrayList();
+        List<String> accountDIDArray = Lists.newArrayList();
+
+        accounts.forEach(t -> {
+            // check account
+            checkAccount(t.getAccount());
+
+            // check account name
+            checkAccountName(t.getAccountName());
+
+            if (Strings.isEmpty(t.getAccountDID())) {
+                t.setAccountDID("");
+            }
+            accountArray.add(t.getAccount());
+            accountNameArray.add(t.getAccountName());
+            accountDIDArray.add(t.getAccountDID());
+        });
+
+        // input params
+        ArrayList<Object> arrayList = Lists.newArrayList();
+        arrayList.add(accountArray.stream().collect(Collectors.joining(",")));
+        arrayList.add(accountNameArray.stream().collect(Collectors.joining(",")));
+        arrayList.add(accountDIDArray.stream().collect(Collectors.joining(",")));
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_BATCH_ACCOUNT_BY_PLATFORM, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+
+    /**
+     * 运营方可以通过调用该方法直接对平台方或平台方的终端用户进行创建。
      *
      * @param sender    The address the transaction is sent from.
      * @param account   DDC链账户地址
@@ -75,16 +210,67 @@ public class AuthorityService extends BaseService {
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
-        arrayList.add(new Address(account));
-        arrayList.add(new Utf8String(accName));
-        arrayList.add(new Utf8String(accDID));
-        arrayList.add(new Utf8String(leaderDID));
+        arrayList.add(account);
+        arrayList.add(accName);
+        arrayList.add(accDID);
+        arrayList.add(leaderDID);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_ACCOUNT_BY_OPERATOR, authorityContract);
         return (String) respJsonRpcBean.getResult();
     }
 
+
+    /**
+     * 运营方可以通过调用该方法直接对平台方或平台方的终端用户进行批量创建。
+     *
+     * @param sender   The address the transaction is sent from.
+     * @param accounts DDC链账户
+     * @return 返回交易哈希
+     * @throws Exception
+     */
+    public String addBatchAccountByOperator(String sender, List<AccountInfo> accounts) throws Exception {
+        return addBatchAccountByOperator(sender, accounts, null);
+    }
+
+    public String addBatchAccountByOperator(String sender, List<AccountInfo> accounts, RequestOptions options) throws Exception {
+        //check params length
+        int len = accounts.size();
+        checkLen(len);
+
+        // check sender
+        checkSender(sender);
+
+        List<String> accountArray = Lists.newArrayList();
+        List<String> accountNameArray = Lists.newArrayList();
+        List<String> accountDIDArray = Lists.newArrayList();
+        List<String> accountLeaderDIDArray = Lists.newArrayList();
+
+        accounts.forEach(t -> {
+            // check account
+            checkAccount(t.getAccount());
+            // check account name
+            checkAccountName(t.getAccountName());
+            if (Strings.isEmpty(t.getLeaderDID())) {
+                t.setLeaderDID("");
+            }
+            accountArray.add(t.getAccount());
+            accountNameArray.add(t.getAccountName());
+            accountDIDArray.add(t.getAccountDID());
+            accountLeaderDIDArray.add(t.getLeaderDID());
+        });
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(accountArray.stream().collect(Collectors.joining(",")));
+        arrayList.add(accountNameArray.stream().collect(Collectors.joining(",")));
+        arrayList.add(accountDIDArray.stream().collect(Collectors.joining(",")));
+        arrayList.add(accountLeaderDIDArray.stream().collect(Collectors.joining(",")));
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.ADD_BATCH_ACCOUNT_BY_OPERATOR, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
 
     /**
      * 删除账户
@@ -204,7 +390,7 @@ public class AuthorityService extends BaseService {
         checkAccount(account);
 
         if (Objects.isNull(state)) {
-            throw new DDCException(ErrorMessage.ACCOUNT_STATUS_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "account status");
         }
 
         // input params
@@ -254,12 +440,72 @@ public class AuthorityService extends BaseService {
 
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
-        arrayList.add(new Address(from));
-        arrayList.add(new Address(to));
+        arrayList.add(from);
+        arrayList.add(to);
         arrayList.add(approved);
 
         // send transaction
-        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.CrossPlatformApproval, authorityContract);
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.CROSS_PLATFORM_APPROVAL, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 运营方通过调用该接口将旧平台方链账户所对应的DID同步到链上。
+     *
+     * @param sender
+     * @param dids   did list
+     * @return
+     * @throws Exception
+     */
+    public String syncPlatformDID(String sender, List<String> dids) throws Exception {
+        return syncPlatformDID(sender, dids, null);
+    }
+
+    public String syncPlatformDID(String sender, List<String> dids, RequestOptions options) throws Exception {
+        //check params length
+        int len = dids.size();
+        checkLen(len);
+
+        // check sender
+        checkSender(sender);
+
+        List<String> didsArray = new ArrayList<>();
+        // check did
+        dids.forEach(t -> {
+            checkDID(t);
+            didsArray.add(t);
+        });
+
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(didsArray.stream().collect(Collectors.joining(",")));
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.SYNC_PLATFORM_DID, authorityContract);
+        return (String) respJsonRpcBean.getResult();
+    }
+
+    /**
+     * 运营方通过调用该API接口对启用批量开关进行设置。
+     *
+     * @param sender The address the transaction is sent from.
+     * @param isOpen state
+     * @return 返回交易哈希
+     * @throws Exception
+     */
+    public String setSwitcherStateOfBatch(String sender, boolean isOpen) throws Exception {
+        return setSwitcherStateOfBatch(sender, isOpen, null);
+    }
+
+    public String setSwitcherStateOfBatch(String sender, boolean isOpen, RequestOptions options) throws Exception {
+        // check sender
+        checkSender(sender);
+
+        // input params
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(isOpen);
+
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, AuthorityFunctions.SET_SWITCHER_STATE_OF_BATCH, authorityContract);
         return (String) respJsonRpcBean.getResult();
     }
 }

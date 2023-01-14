@@ -27,7 +27,7 @@ public class AnalyzeChainInfoUtils {
 
     public static InputAndOutputResult analyzeTransactionOutput(String abi, String bin, String input, String output) throws BaseException, TransactionException {
         if (Strings.isNotBlank(output) && "0x".equalsIgnoreCase(output)) {
-            throw new DDCException(ErrorMessage.INPUT_AND_OUTPUT_RESULT_IS_EMPTY);
+            throw new DDCException(ErrorMessage.IS_EMPTY, "InputAndOutputResult");
         }
         TransactionDecoder txDecodeSampleDecoder = new TransactionDecoder(abi, bin);
         return txDecodeSampleDecoder.decodeOutputReturnObject(input, output);
