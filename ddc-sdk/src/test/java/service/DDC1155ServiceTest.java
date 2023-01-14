@@ -50,9 +50,10 @@ class DDC1155ServiceTest {
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
-    // 签名账户地址
-    public static String sender = "0xCd00A127C44E6E61070544e626ee5F9336D04e80";
+    // 平台方
+    public static String sender = "0x466D5b0eA174a2DD595D40e0B30e433FCe6517F5";
 
+    public static String metaAccount = "0x81072375a506581CADBd90734Bd00A20CdDbE48b";
     public static BigInteger metaNonce = BigInteger.valueOf(1);
     public static BigInteger metaDeadline = BigInteger.valueOf(1671096761);
 
@@ -64,8 +65,7 @@ class DDC1155ServiceTest {
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        // sender 对应的Hex格式私钥
-        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
+        String privateKey = "...";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);

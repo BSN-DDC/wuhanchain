@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class DDC721MetaTransactionTest {
 
-    String privateKey = "0xb1e104c4c3d74dc4a9131cde8f3619c1c2d68a442da19dc146159eae0311d8b1";
+    String privateKey = "...";
     DDC721MetaTransaction metaTransaction = DDC721MetaTransaction.builder()
             .setChainId(BigInteger.valueOf(5555))
             .setContractAddress("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")

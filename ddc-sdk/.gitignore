@@ -1,0 +1,17 @@
+# MacOS Leftovers
+.DS_Store
+.vscode
+
+# idea
+.idea
+*.iml
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# custom
+logs
+target

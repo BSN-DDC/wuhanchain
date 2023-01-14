@@ -39,9 +39,24 @@ public class AuthorityServiceTest {
             .build();
 
 
+//     // The address the transaction is send from.
+//    // 运营方
+//    public String sender = "0x6922d8af46d5e39c2a15caa26ee692fcc118adc5";
+//
+//    static {
+//        DDCWuhan.setGatewayUrl("https://opbtest.bsngate.com:18602/api/4bbed86d890f42b6b70de34c9be425dd/rpc");
+//    }
+//
+//    private static String transactionSignature(String sender, RawTransaction transaction) {
+//
+//        String privateKey = "...";
+//        Credentials credentials = Credentials.create(privateKey);
+//        byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
+//        return Numeric.toHexString(signedMessage);
+//    }
 
-    // 签名账户地址
-    public static String sender = "0xCd00A127C44E6E61070544e626ee5F9336D04e80";
+    // 平台方
+    public static String sender = "0xd17104BB8f8B253a04e0aC1F40312a627a4d2a80";
 
     static {
         DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
@@ -51,8 +66,7 @@ public class AuthorityServiceTest {
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        // sender 对应的Hex格式私钥
-        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
+        String privateKey = "...";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
