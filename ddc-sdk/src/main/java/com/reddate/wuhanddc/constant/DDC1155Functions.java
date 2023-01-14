@@ -35,5 +35,6 @@ public class DDC1155Functions {
     public static final String SET_URI_EVENT = "SetURI(uint256,string)";
     public static final String LOCK_LIST_EVENT = "Locklist(address,uint256)";
     public static final String UNLOCK_LIST_EVENT = "UnLocklist(address,uint256)";
+    public static final String META_TRANSFER_SINGLE_EVENT = "MetaTransferSingle(address,address,address,uint256,uint256)";
 
 }

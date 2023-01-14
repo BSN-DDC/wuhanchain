@@ -64,18 +64,6 @@ public class BlockEventService extends BaseService {
         BigInteger txTimestamp = ethBlock.getBlock().getTimestamp();
         List<EthBlock.TransactionResult> transactions = ethBlock.getBlock().getTransactions();
 
-
-        // Delete unofficial contract
-        Iterator<EthBlock.TransactionResult> it = transactions.iterator();
-        while (it.hasNext()) {
-            EthBlock.TransactionObject transaction = (EthBlock.TransactionObject) it.next();
-            if (!DDCContracts.stream().filter(c -> c.getContractAddress().equalsIgnoreCase(transaction.getTo())).findAny().isPresent()) {
-                logger.info(String.format("BlockNum:%s,Contract:%s,Non-DDC official contracts do not have statistical data", transaction.getBlockNumber(), transaction.getTo()));
-                it.remove();
-                continue;
-            }
-        }
-
         // response
         ArrayList<T> arrayList = new ArrayList<>();
         if (transactions.size() > 0) {

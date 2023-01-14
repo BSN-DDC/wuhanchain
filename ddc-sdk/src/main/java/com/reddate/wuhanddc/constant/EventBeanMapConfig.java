@@ -38,11 +38,7 @@ public class EventBeanMapConfig {
         eventBeanMap.put(ddc721Address + DDC721Functions.SET_URI_EVENT, DDC721SetURIEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.LOCK_LIST_EVENT, DDC721LockListEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.UNLOCK_LIST_EVENT, DDC721UnlockListEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_MINT, DDC721MetaTransferEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_SAFE_MINT, DDC721MetaTransferEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_TRANSFER_FROM, DDC721MetaTransferEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_SAFE_TRANSFER_FROM, DDC721MetaTransferEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_BURN, DDC721MetaTransferEventBean.class);
+        eventBeanMap.put(ddc721Address + DDC721Functions.META_TRANSFER_EVENT, DDC721MetaTransferEventBean.class);
 
         eventBeanMap.put(ddc1155Address + DDC1155Functions.TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
         eventBeanMap.put(ddc1155Address + DDC1155Functions.TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);
@@ -51,9 +47,7 @@ public class EventBeanMapConfig {
         eventBeanMap.put(ddc1155Address + DDC1155Functions.SET_URI_EVENT, DDC1155SetURIEventBean.class);
         eventBeanMap.put(ddc1155Address + DDC1155Functions.LOCK_LIST_EVENT, DDC1155LockListEventBean.class);
         eventBeanMap.put(ddc1155Address + DDC1155Functions.UNLOCK_LIST_EVENT, DDC1155UnlockListEventBean.class);
-        eventBeanMap.put(ddc1155Address + DDC1155Functions.META_SAFE_MINT, DDC1155MetaTransferSingleEventBean.class);
-        eventBeanMap.put(ddc1155Address + DDC1155Functions.META_SAFE_TRANSFER_FROM, DDC1155MetaTransferSingleEventBean.class);
-        eventBeanMap.put(ddc1155Address + DDC1155Functions.META_BURN, DDC1155MetaTransferSingleEventBean.class);
+        eventBeanMap.put(ddc1155Address + DDC1155Functions.META_TRANSFER_SINGLE_EVENT, DDC1155MetaTransferSingleEventBean.class);
 
         eventBeanMap.put(crossChainAddress + DDCCrossChainFunctions.CROSS_CHAIN_TRANSFER_EVENT, CrossChainTransferEventBean.class);
         eventBeanMap.put(crossChainAddress + DDCCrossChainFunctions.UPDATE_CROSS_CHAIN_STATUS_EVENT, UpdateCrossChainStatusEventBean.class);

@@ -53,12 +53,13 @@ public class CrossChainServiceTest {
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        // sender 对应的Hex格式私钥
-        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
+
+        String privateKey = "...";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
     }
+
 
     @Test
     public void crossChainTransfer() throws Exception {

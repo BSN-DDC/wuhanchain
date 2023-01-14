@@ -10,6 +10,7 @@ import com.reddate.wuhanddc.constant.ErrorMessage;
 import com.reddate.wuhanddc.exception.DDCException;
 import com.reddate.wuhanddc.listener.SignEventListener;
 import com.reddate.wuhanddc.net.DDCWuhan;
+import com.reddate.wuhanddc.net.RequestOptions;
 import com.reddate.wuhanddc.service.BaseService;
 import com.reddate.wuhanddc.service.ChargeService;
 import com.reddate.wuhanddc.service.DDC1155Service;
@@ -55,10 +56,8 @@ class DDC721ServiceTest {
             .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048")
             .setChainId(BigInteger.valueOf(5555))
             .build();
-
-
-    // 签名账户地址
-    public static String sender = "0xCd00A127C44E6E61070544e626ee5F9336D04e80";
+    //  The address the transaction is send from.
+    public static String sender = "0x238f4d9bfd16f422c16a692591d8f4b36a01bb35";
 
     public static BigInteger metaNonce = BigInteger.valueOf(1);
     public static BigInteger metaDeadline = BigInteger.valueOf(1671096761);
@@ -66,13 +65,16 @@ class DDC721ServiceTest {
     static {
         DDCWuhan.setGatewayUrl("https://opbningxia.bsngate.com:18602/api/[projectId]/rpc");
         DDCWuhan.setNonceManagerAddress(sender);
+
+//        metaNonce = getNonce(metaAccount);
+//        metaDeadline = BigInteger.valueOf(LocalDateTime.now().plusYears(1).toEpochSecond(ZoneOffset.ofHours(8)));
     }
 
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        // sender 对应的Hex格式私钥
-        String privateKey = "0x9a42974510d63f697e7f69802c0eb8c061a4498d926d30505014ec1c9351202f";
+        //sender privateKey
+        String privateKey = "...";
         Credentials credentials = Credentials.create(privateKey);
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);

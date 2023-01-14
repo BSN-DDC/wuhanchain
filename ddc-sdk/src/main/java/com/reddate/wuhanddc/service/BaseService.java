@@ -219,12 +219,13 @@ public class BaseService extends RestTemplateUtil {
      * @return
      */
     public BigInteger getGasPrice() throws Exception {
-        ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
+        return DDCWuhan.getGasPrice();
+        /*ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
         reqJsonRpcBean.setMethod(EthFunctions.ETH_GAS_PRICE);
         reqJsonRpcBean.setParams(new ArrayList<>());
         RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
         resultCheck(respJsonRpcBean);
-        return Numeric.toBigInt(respJsonRpcBean.getResult().toString());
+        return Numeric.toBigInt(respJsonRpcBean.getResult().toString());*/
     }
 
 

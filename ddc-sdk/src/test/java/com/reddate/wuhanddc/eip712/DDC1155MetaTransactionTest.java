@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 class DDC1155MetaTransactionTest {
 
-    String privateKey = "0xb1e104c4c3d74dc4a9131cde8f3619c1c2d68a442da19dc146159eae0311d8b1";
+    String privateKey = "...";
     DDC1155MetaTransaction metaTransaction = DDC1155MetaTransaction.builder()
             .setChainId(BigInteger.valueOf(5555))
             .setContractAddress("0x061e59c74815994DAb4226a0D344711F18E0F418")

@@ -44,9 +44,14 @@ public class DDC1155IntegrationTest {
     private static String transactionSignature(String sender, RawTransaction transaction) {
         // sender: Obtain the private key according to the sender and complete its signature
 
-        // sender 对应的Hex格式私钥
-        String privateKey = "0xb0740f6265b97f766bf2d109204bb320861e99a3fbdb67d0a9a84891ef280c97";
+        //sender privateKey
+        String privateKey = "...";
         Credentials credentials = Credentials.create(privateKey);
+
+        if (!credentials.getAddress().equalsIgnoreCase(sender)) {
+            throw new DDCException(ErrorMessage.ILLEGAL_PARAMETER, "sender and privateKey do not match");
+        }
+
         byte[] signedMessage = TransactionEncoder.signMessage(transaction, 5555, credentials);
         return Numeric.toHexString(signedMessage);
     }

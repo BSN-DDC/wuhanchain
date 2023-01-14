@@ -758,3 +758,20 @@ nonce的默认值是根据DDCWuhan.nonceManagerAddress设置的账户地址从�
 RequestOptions options = RequestOptions.builder().build();
         requestOptions.setNonce("2");
 ```
+
+### 配置 gasPrice 值
+
+gasPrice的默认值为1000000000，如果通过DDCWuhan.setGasPrice方法进行设置将会覆盖默认值
+
+```java
+DDCWuhan.setGasPrice(BigInteger.valueOf(1000000000));
+```
+
+或者在更精细的粒度级别上使用 RequestOptions：
+
+```java
+RequestOptions requestOptions = RequestOptions.builder()
+  .setGasPrice(BigInteger.valueOf(2000000000))
+  .build()
+);
+```
