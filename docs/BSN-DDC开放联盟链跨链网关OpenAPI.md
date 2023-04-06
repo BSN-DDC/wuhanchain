@@ -4,10 +4,10 @@
 
 * **通讯协议：** `HTTP`
 * **通讯报文数据格式：**`application/json`
-* **服务通讯地址：**`https://ddccross.bsnbase.com`
+* **服务通讯地址：**`https://ddccross.bsnbase.com/`
 
 #### 1. 获取 Token
-**调用跨链服务系统其它对外接口前，需要先调用本接口获取 token，调用其它接口时需要将 token 作为请求头参数**。token 可以复用，但需要注意 token 是否过期，过期后需再次获取新的 token。
+**调用 BSN-DDC 开放联盟链跨链网关其它的 OpenAPI 前，需要先调用本接口获取 token，并将 token 的值添加到请求头中**。token 可以复用，但需要注意 token 是否过期，过期后需再次获取新的 token。
 
 * **接口名称:** `api/crosschain/getToken`
 
@@ -31,7 +31,7 @@
 * **请求示例:**
 
 ```shell
-curl -X POST "http://localhost:9019/api/cross/chain/getToken" -H "accept: */*" -H "token: 1" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0x50AB82F7EF1DAEB40E8370D7ACCBBE5B345A0F34\", \"signature\": \"0xa9392573e4a708cd7d11af816eb992c47eeab70e22bbcd0c1c03caca843e6afd0x4d8b2ea556e14f692093be287f5449d3cb70dd01a2675a1a23b71a88296277210x1c\"}"
+curl -X POST "https://ddccross.bsnbase.com/api/crosschain/getToken" -H "accept: */*" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0x50AB82F7EF1DAEB40E8370D7ACCBBE5B345A0F34\", \"signature\": \"0xa9392573e4a708cd7d11af816eb992c47eeab70e22bbcd0c1c03caca843e6afd0x4d8b2ea556e14f692093be287f5449d3cb70dd01a2675a1a23b71a88296277210x1c\"}"
 ```
 
 * **响应示例:**
@@ -46,7 +46,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/getToken" -H "accept: */*" -
 
 #### 2. 查询支持的跨链框架
 
-查询跨链服务系统已经支持的跨链框架。
+查询跨链服务系统目前已经支持的跨链框架。
 
 **接口名称:**`api/crosschain/supported/framework`
 
@@ -75,7 +75,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/getToken" -H "accept: */*" -
 **请求示例:**
 
 ```shell
-curl -X GET "http://localhost:9019/api/cross/chain/supported/framework" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw"
+curl -X GET "https://ddccross.bsnbase.com/api/crosschain/supported/framework" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw"
 ```
 
 **响应示例:**
@@ -117,8 +117,8 @@ curl -X GET "http://localhost:9019/api/cross/chain/supported/framework" -H "acce
 |2|originChainHash|起始链交易哈希|否|String|
 |3|originCrossChainId|起始链唯一跨链 Id|否|Integer|
 |4|originChainDdcId|起始链 DDC Id|否|Integer|
-|4|pageNum|页码（从1开始）|是|Integer|
-|4|pageSize|每页数据条数（默认10条）|是|Integer|
+|5|pageNum|页码（从1开始）|是|Integer|
+|6|pageSize|每页数据条数（默认10条）|是|Integer|
 
 **响应参数:**
 
@@ -135,7 +135,7 @@ curl -X GET "http://localhost:9019/api/cross/chain/supported/framework" -H "acce
 |2.1.6|&emsp;&emsp;&emsp;&emsp;originChainTime|起始链交易时间|是|String|
 |2.1.7|&emsp;&emsp;&emsp;&emsp;originChainSender|起始链交易签名账户|是|String|
 |2.1.8|&emsp;&emsp;&emsp;&emsp;locked|是否锁定|是|Boolean|
-|2.1.9|&emsp;&emsp;&emsp;&emsp;ddcType|DDC 类型|是|String|
+|2.1.9|&emsp;&emsp;&emsp;&emsp;ddcType|DDC 类型（721/1155）|是|String|
 |2.1.10|&emsp;&emsp;&emsp;&emsp;ddcUri|DDC URI|是|String|
 |2.1.11|&emsp;&emsp;&emsp;&emsp;ddcAmount|DDC 数量|是|Integer|
 |2.1.12|&emsp;&emsp;&emsp;&emsp;data|额外参数|是|String|
@@ -156,7 +156,7 @@ curl -X GET "http://localhost:9019/api/cross/chain/supported/framework" -H "acce
 **请求示例:**
 
 ```shell
-curl -X POST "http://localhost:9019/api/cross/chain/transaction/detail" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"originChainDdcId\": 101, \"originChainId\": 4, \"pageNum\": 1, \"pageSize\": 10}"
+curl -X POST "https://ddccross.bsnbase.com/api/crosschain/transaction/detail" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"originChainDdcId\": 101, \"originChainId\": 4, \"pageNum\": 1, \"pageSize\": 10}"
 ```
 
 **响应示例:**
@@ -210,7 +210,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/transaction/detail" -H "acce
 |---|---|---|---|---|
 |1|chainId|目标链 Id|是|Integer|
 |2|accountAddress|目标链账户地址|否|String|
-|4|pageNum|页码（从1开始）|是|Integer|
+|3|pageNum|页码（从1开始）|是|Integer|
 |4|pageSize|每页数据条数（默认10条）|是|Integer|
 
 **响应参数:**
@@ -228,7 +228,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/transaction/detail" -H "acce
 |2.1.6|&emsp;&emsp;&emsp;&emsp;originChainTime|起始链交易时间|是|String|
 |2.1.7|&emsp;&emsp;&emsp;&emsp;originChainSender|起始链交易签名账户|是|String|
 |2.1.8|&emsp;&emsp;&emsp;&emsp;locked|是否锁定|是|Boolean|
-|2.1.9|&emsp;&emsp;&emsp;&emsp;ddcType|DDC 类型|是|String|
+|2.1.9|&emsp;&emsp;&emsp;&emsp;ddcType|DDC 类型（721/1155）|是|String|
 |2.1.10|&emsp;&emsp;&emsp;&emsp;ddcUri|DDC URI|是|String|
 |2.1.11|&emsp;&emsp;&emsp;&emsp;ddcAmount|DDC 数量|是|Integer|
 |2.1.12|&emsp;&emsp;&emsp;&emsp;data|额外参数|是|String|
@@ -243,7 +243,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/transaction/detail" -H "acce
 **请求示例:**
 
 ```shell
-curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0xde35e7cf540bca5f289b4f1b03b9af758f5aa972\", \"chainId\": 3, \"pageNum\": 1, \"pageSize\": 10}"
+curl -X POST "https://ddccross.bsnbase.com/api/crosschain/unconfirmed/transaction" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0xde35e7cf540bca5f289b4f1b03b9af758f5aa972\", \"chainId\": 3, \"pageNum\": 1, \"pageSize\": 10}"
 ```
 
 **响应示例:**
@@ -279,7 +279,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H 
 ```
 
 #### 5. 目标链用户确认跨链交易
-调用跨链服务系统其它对外接口前，需要先调用本接口获取 token，**调用其它接口时需要将 token 作为请求头参数**。token 可以复用，但需要关注 token 的过期时间，过期后需再次获取新的 token。
+首先目标链用户使用其链账户私钥对自己的链账户地址进行签名，然后完成对跨链交易的确认。确认成功后，跨链服务系统会自动向目标链发起跨链交易。如果不进行确认操作则跨链交易将无法完成。
 
 * **接口名称:** `api/crosschain/confirm/transaction`
 
@@ -289,22 +289,22 @@ curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H 
 
 |序号|参数名称|参数说明|是否必须|参数类型|
 |---|---|---|---|---|
-|1|accountAddress|DDC 在目标链上的 Owner 的目标链账户地址（包含`0x`前缀）|是|String|
+|1|accountAddress|DDC 在目标链上的 Owner 的链账户地址（包含`0x`前缀）|是|String|
 |2|signature|DDC 在目标链上的 Owner 的链账户私钥对链账户地址进行签名的结果（签名算法说明见文章末尾）|是|String|
-|2|hash|起始链交易哈希|是|String|
+|3|hash|起始链交易哈希（接口4响应示例中的`originChainHash`字段值）|是|String|
 
 * **响应参数:**
 
 |序号|参数名称|参数说明|是否必须|参数类型 |
 |---|---|---|---|---|
 |1|code|响应码|是|Integer|
-|2|data|token值|是|String|
+|2|data|是否成功确认（true：成功，false：失败）|是|Boolean|
 |3|msg|说明|是|String|
 
 **请求示例:**
 
 ```shell
-curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0xde35e7cf540bca5f289b4f1b03b9af758f5aa972\", \"chainId\": 3, \"pageNum\": 1, \"pageSize\": 10}"
+curl -X POST "http://ddccross.bsnbase.com/api/crosschain/confirm/transaction" -H "accept: */*" -H "token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIweDUwQUI4MkY3RUYxREFFQjQwRTgzNzBEN0FDQ0JCRTVCMzQ1QTBGMzQiLCJpYXQiOjE2ODA0MjQzNDV9.3er46t_pv0hkQOV3OFDNiFDqYed5l6FvSrquctklyi_XxBuF_bccDEEYxFN79zvDSRDpg6lTYNX6koWJdnHYJw" -H "Content-Type: application/json" -d "{ \"accountAddress\": \"0xde35e7cf540bca5f289b4f1b03b9af758f5aa972\", \"hash\": \"0x24901464c1ecc5c56625fffe6f2910b73a22b2fc52ce4f0aa6ced06bf1593ffb\", \"signature\": \"0x82ff32c79c8a82d7f83eeb905c412a7c41c4ecb3f55ddea904b73b077254a50f0x26bf74064f509ae0d06f36e74274eef1099914c9f2709598f8cb11192c12bd6b0x1c\"}"
 ```
 
 **响应示例:**
@@ -313,29 +313,7 @@ curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H 
 {
 	"code": 0,
 	"msg": "success",
-	"data": {
-		"records": [{
-			"id": 34,
-			"originChainId": 4,
-			"originCrossChainId": 20,
-			"originChainDdcId": 104,
-			"originChainDdcOwner": "0x01959ec212d9726f7782eba3cc831f0163fde156",
-			"originChainHash": "0x36e2897eb7b6f2350d6cffbd2428316f9892a3be4e12985f9a2907ff6cb4c587",
-			"originChainTime": "2023-04-02T17:10:36.000+08:00",
-			"originChainSender": "0x01959ec212d9726f7782eba3cc831f0163fde156",
-			"locked": true,
-			"ddcType": "721",
-			"ddcUri": "{\"Name\":\"TestName1\",\"Symbol\":\"DDCSymbol\",\"URL\":\"http://www.bsn-test.asia:18000\",\"Issuer\":\"zhangsan\",\"Remarks\":\"TestRemarks\"}",
-			"ddcAmount": 1,
-			"data": "00",
-			"targetChainDdcOwner": "0xde35e7cf540bca5f289b4f1b03b9af758f5aa972",
-			"targetChainId": 3
-		}],
-		"total": 1,
-		"size": 10,
-		"current": 1,
-		"pages": 1
-	}
+	"data": true
 }
 ```
 
@@ -359,4 +337,3 @@ curl -X POST "http://localhost:9019/api/cross/chain/unconfirmed/transaction" -H 
 2. 使用私钥计算出`SECP-256k1`算法的密钥对`ECKeyPair`。
 3. 使用上一步获得的密钥对`ECKeyPair`对链账户地址进行签名，获得签名结果`SignatureData`对象。
 4. 将上一步签名结果对象中的`R`、`S`、`V`三个变量的值依次转换为16进制字符串，然后依次拼接得到最终的签名结果字符串。
-
