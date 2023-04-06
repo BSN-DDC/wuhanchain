@@ -48,11 +48,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
      *
      * Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
      */
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 
     /**
      * @dev See {IAuthority-addOperator}.
@@ -75,9 +73,32 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             accountName,
             Role.Operator
         );
-        emit AddAccount(_msgSender(),operator);
+        emit AddAccount(_msgSender(), operator);
     }
 
+    /**
+     * @dev See {IAuthority-addCrossChain}.
+     **/
+    function addCrossChain(
+        address crossChain,
+        string memory accountName,
+        string memory accountDID
+    ) external override onlyOwner {
+        require(
+            bytes(accountDID).length != 0,
+            "Authority: DID cannot be empty!"
+        );
+        _requireAccountName(accountName);
+        _requireNotExist(crossChain);
+        _addAccount(
+            crossChain,
+            accountDID,
+            accountDID,
+            accountName,
+            Role.CrossChain
+        );
+        emit AddAccount(_msgSender(), crossChain);
+    }
 
     /**
      * @dev See {IAuthority-addAccountByPlatform}.
@@ -99,7 +120,7 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
             accountName,
             Role.Consumer
         );
-        emit AddAccount(_msgSender(),account);
+        emit AddAccount(_msgSender(), account);
     }
 
     /**
@@ -257,7 +278,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-getAccount}.
      **/
-    function getAccount(address account)
+    function getAccount(
+        address account
+    )
         public
         view
         override
@@ -286,12 +309,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-checkAvailableAndRole}.
      **/
-    function checkAvailableAndRole(address account, Role role)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function checkAvailableAndRole(
+        address account,
+        Role role
+    ) public view override returns (bool) {
         // - Verify that the account exists
         AccountInfo memory accountInfo = _getAccount(account);
         _requireAccountExists(accountInfo.accountName);
@@ -302,12 +323,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-accountAvailable}.
      **/
-    function accountAvailable(address account)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function accountAvailable(
+        address account
+    ) public view override returns (bool) {
         // - Verify that the account exists
         AccountInfo memory accountInfo = _getAccount(account);
         _requireAccountExists(accountInfo.accountName);
@@ -411,12 +429,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-getFunctions}.
      **/
-    function getFunctions(Role role, address contractAddress)
-        public
-        view
-        override
-        returns (bytes4[] memory)
-    {
+    function getFunctions(
+        Role role,
+        address contractAddress
+    ) public view override returns (bytes4[] memory) {
         _requireNotZeroAddress(contractAddress);
         return
             _funcAclList[role][_getContractIndexOfRole(role, contractAddress)]
@@ -449,12 +465,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-onePlatformCheck}.
      **/
-    function onePlatformCheck(address acc1, address acc2)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function onePlatformCheck(
+        address acc1,
+        address acc2
+    ) public view override returns (bool) {
         // 1. Accounts `acc1` and `acc2` exist, and platformState and operatorState are active
         AccountInfo memory acc1Info = _getAccount(acc1);
         _requireAccountExists(acc1Info.accountName);
@@ -501,12 +515,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-crossPlatformCheck}.
      **/
-    function crossPlatformCheck(address from, address to)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function crossPlatformCheck(
+        address from,
+        address to
+    ) public view override returns (bool) {
         // 1. Accounts `from` and `to` exist, and platformState and operatorState are active
         AccountInfo memory fromInfo = _getAccount(from);
         _requireAccountExists(fromInfo.accountName);
@@ -560,12 +572,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {IAuthority-setSwitcherStateOfBatch}.
      **/
-    function setSwitcherStateOfBatch(bool isOpen)public {
+    function setSwitcherStateOfBatch(bool isOpen) public {
         _requireRole(Role.Operator);
-        require(
-            isOpen != _enableBatch,
-            "Authority:invalid operation"
-        );
+        require(isOpen != _enableBatch, "Authority:invalid operation");
         _enableBatch = isOpen;
         emit SetSwitcherStateOfBatch(_msgSender(), isOpen);
     }
@@ -573,11 +582,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev get real contract index of _funcAclList
      **/
-    function _getContractIndexOfRole(Role accRole, address contractAddress)
-        private
-        view
-        returns (uint256)
-    {
+    function _getContractIndexOfRole(
+        Role accRole,
+        address contractAddress
+    ) private view returns (uint256) {
         uint256 idx = _contractIndexList[accRole][contractAddress];
         require(idx > 0, "Authority:`role` or `contractAddress` doesn't exist");
         return idx - 1;
@@ -586,11 +594,10 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev Require both operatorState and platformState to be active
      **/
-    function _isActive(State operatorState, State platformState)
-        private
-        pure
-        returns (bool)
-    {
+    function _isActive(
+        State operatorState,
+        State platformState
+    ) private pure returns (bool) {
         return (operatorState == State.Active && platformState == State.Active);
     }
 
@@ -657,11 +664,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev Get account's info
      **/
-    function _getAccount(address account)
-        private
-        view
-        returns (AccountInfo memory)
-    {
+    function _getAccount(
+        address account
+    ) private view returns (AccountInfo memory) {
         _requireNotZeroAddress(account);
         return _accountsInfo[account];
     }
@@ -673,11 +678,9 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
         return lowerLevelInfo.leaderDID.equal(higherLevelInfo.accountDID);
     }
 
-    function _updateAccountCheck(address account)
-        private
-        view
-        returns (AccountInfo memory, AccountInfo memory)
-    {
+    function _updateAccountCheck(
+        address account
+    ) private view returns (AccountInfo memory, AccountInfo memory) {
         // - A data contract is invoked to verify that the account already exists, or false is returned.
         AccountInfo memory accountInfo = _getAccount(account);
         require(
@@ -750,9 +753,6 @@ contract Authority is IAuthority, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Requires the switcher of platform is opened.
      */
     function _requireOpenedSwitcherStateOfBatch() private view {
-        require(
-            _enableBatch,
-            "Authority:switcher of batch is closed"
-        );
+        require(_enableBatch, "Authority:switcher of batch is closed");
     }
 }

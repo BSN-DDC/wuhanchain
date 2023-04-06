@@ -47,20 +47,16 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
      *
      * Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
      */
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 
     /**
      * @dev See {ICharge-setAuthorityProxyAddress}.
      */
-    function setAuthorityProxyAddress(address authorityProxyAddress)
-        external
-        override
-        onlyOwner
-    {
+    function setAuthorityProxyAddress(
+        address authorityProxyAddress
+    ) external override onlyOwner {
         require(
             address(0) != authorityProxyAddress,
             "charge: auth the zero address"
@@ -80,10 +76,10 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {ICharge-rechargeBatch}.
      */
-    function rechargeBatch(address[] memory toList, uint256[] memory amounts)
-        external
-        override
-    {
+    function rechargeBatch(
+        address[] memory toList,
+        uint256[] memory amounts
+    ) external override {
         _requireOpenedSwitcherStateOfBatch();
         require(
             toList.length != 0 && amounts.length != 0,
@@ -110,11 +106,7 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {ICharge-pay}.
      */
-    function pay(
-        address payer,
-        bytes4 sig,
-        uint256 ddcId
-    ) external override {
+    function pay(address payer, bytes4 sig, uint256 ddcId) external override {
         require(payer != address(0), "charge:zero address");
         require(ddcId != 0, "charge:invalid ddcId");
         address payee = _msgSender();
@@ -186,12 +178,9 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {ICharge-balanceOfBatch}.
      */
-    function balanceOfBatch(address[] memory accAddrs)
-        public
-        view
-        override
-        returns (uint256[] memory)
-    {
+    function balanceOfBatch(
+        address[] memory accAddrs
+    ) public view override returns (uint256[] memory) {
         uint256[] memory batchBalances = new uint256[](accAddrs.length);
         for (uint256 i = 0; i < accAddrs.length; i++) {
             batchBalances[i] = Charge.balanceOf(accAddrs[i]);
@@ -202,12 +191,10 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev See {ICharge-queryFee}.
      */
-    function queryFee(address ddcAddr, bytes4 sig)
-        public
-        view
-        override
-        returns (uint32)
-    {
+    function queryFee(
+        address ddcAddr,
+        bytes4 sig
+    ) public view override returns (uint32) {
         require(address(0) != ddcAddr, "charge:zero address");
         require(
             _ddcFees[ddcAddr].used,
@@ -228,10 +215,7 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
      */
     function setSwitcherStateOfBatch(bool isOpen) public override {
         _requireOperator();
-        require(
-            isOpen != _enableBatch,
-            "charge:invalid operation"
-        );
+        require(isOpen != _enableBatch, "charge:invalid operation");
         _enableBatch = isOpen;
         emit SetSwitcherStateOfBatch(_msgSender(), isOpen);
     }
@@ -252,11 +236,7 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev Transfer amount to `to` from `from`.
      */
-    function _recharge(
-        address from,
-        address to,
-        uint256 amount
-    ) private {
+    function _recharge(address from, address to, uint256 amount) private {
         if (from != address(0)) {
             require(
                 Charge.balanceOf(from) >= amount,
@@ -272,11 +252,10 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @dev Check persmissions of Recharge
      */
-    function _checkRechargePermission(address from, address to)
-        private
-        view
-        returns (bool)
-    {
+    function _checkRechargePermission(
+        address from,
+        address to
+    ) private view returns (bool) {
         IAuthority.AccountInfo memory fromAcc;
         (
             fromAcc.accountDID,
@@ -294,10 +273,10 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
                 fromAcc.operatorState == IAuthority.State.Active),
             "charge: `from` is frozen"
         );
-        require(
-            fromAcc.accountRole != IAuthority.Role.Consumer,
-            "charge: no recharge permission"
-        );
+        // require(
+        //     fromAcc.accountRole != IAuthority.Role.Consumer,
+        //     "charge: no recharge permission"
+        // );
 
         IAuthority.AccountInfo memory toAcc;
         (
@@ -350,9 +329,6 @@ contract Charge is ICharge, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Requires the switcher of platform is opened.
      */
     function _requireOpenedSwitcherStateOfBatch() private view {
-        require(
-            _enableBatch,
-            "charge:switcher of batch is closed"
-        );
+        require(_enableBatch, "charge:switcher of batch is closed");
     }
 }

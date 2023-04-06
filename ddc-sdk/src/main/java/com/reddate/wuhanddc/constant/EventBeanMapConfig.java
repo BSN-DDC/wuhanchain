@@ -33,12 +33,14 @@ public class EventBeanMapConfig {
         eventBeanMap.put(chargeAddress + ChargeFunctions.DELETE_DDC_EVENT, DeleteDDCEventBean.class);
 
         eventBeanMap.put(ddc721Address + DDC721Functions.TRANSFER_EVENT, DDC721TransferEventBean.class);
+        eventBeanMap.put(ddc721Address + DDC721Functions.TRANSFER_BATCH_EVENT, DDC721TransferBatchEventBean.class);
+        eventBeanMap.put(ddc721Address + DDC721Functions.META_TRANSFER_EVENT, DDC721MetaTransferEventBean.class);
+        eventBeanMap.put(ddc721Address + DDC721Functions.META_TRANSFER_BATCH_EVENT, DDC721MetaTransferBatchEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.FREEZE_EVENT, DDC721FreezeEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.UNFREEZE_EVENT, DDC721UnFreezeEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.SET_URI_EVENT, DDC721SetURIEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.LOCK_LIST_EVENT, DDC721LockListEventBean.class);
         eventBeanMap.put(ddc721Address + DDC721Functions.UNLOCK_LIST_EVENT, DDC721UnlockListEventBean.class);
-        eventBeanMap.put(ddc721Address + DDC721Functions.META_TRANSFER_EVENT, DDC721MetaTransferEventBean.class);
 
         eventBeanMap.put(ddc1155Address + DDC1155Functions.TRANSFER_SINGLE_EVENT, DDC1155TransferSingleEventBean.class);
         eventBeanMap.put(ddc1155Address + DDC1155Functions.TRANSFER_BATCH_EVENT, DDC1155TransferBatchEventBean.class);

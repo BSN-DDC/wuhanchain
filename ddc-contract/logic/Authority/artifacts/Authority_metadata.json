@@ -1,0 +1,1019 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "AddAccount",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address[]",
+						"name": "accounts",
+						"type": "address[]"
+					}
+				],
+				"name": "AddBatchAccount",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bytes4",
+						"name": "sig",
+						"type": "bytes4"
+					}
+				],
+				"name": "AddFunction",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "previousAdmin",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "newAdmin",
+						"type": "address"
+					}
+				],
+				"name": "AdminChanged",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "beacon",
+						"type": "address"
+					}
+				],
+				"name": "BeaconUpgraded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "approved",
+						"type": "bool"
+					}
+				],
+				"name": "CrossPlatformApproval",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bytes4",
+						"name": "sig",
+						"type": "bytes4"
+					}
+				],
+				"name": "DelFunction",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isOpen",
+						"type": "bool"
+					}
+				],
+				"name": "SetSwitcherStateOfBatch",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isOpen",
+						"type": "bool"
+					}
+				],
+				"name": "SetSwitcherStateOfPlatform",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string[]",
+						"name": "dids",
+						"type": "string[]"
+					}
+				],
+				"name": "SyncPlatformDID",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "enum IAuthority.State",
+						"name": "platformState",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "enum IAuthority.State",
+						"name": "operatorState",
+						"type": "uint8"
+					}
+				],
+				"name": "UpdateAccountState",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "implementation",
+						"type": "address"
+					}
+				],
+				"name": "Upgraded",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "accountAvailable",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "accountName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "accountDID",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "leaderDID",
+						"type": "string"
+					}
+				],
+				"name": "addAccountByOperator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "accountName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "accountDID",
+						"type": "string"
+					}
+				],
+				"name": "addAccountByPlatform",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "accounts",
+						"type": "address[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "accountNames",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "accountDIDs",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "leaderDIDs",
+						"type": "string[]"
+					}
+				],
+				"name": "addBatchAccountByOperator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "accounts",
+						"type": "address[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "accountNames",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "accountDIDs",
+						"type": "string[]"
+					}
+				],
+				"name": "addBatchAccountByPlatform",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes4",
+						"name": "sig",
+						"type": "bytes4"
+					}
+				],
+				"name": "addFunction",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "accountName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "accountDID",
+						"type": "string"
+					}
+				],
+				"name": "addOperator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					}
+				],
+				"name": "checkAvailableAndRole",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "approved",
+						"type": "bool"
+					}
+				],
+				"name": "crossPlatformApproval",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "crossPlatformCheck",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes4",
+						"name": "sig",
+						"type": "bytes4"
+					}
+				],
+				"name": "delFunction",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "getAccount",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "enum IAuthority.Role",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "enum IAuthority.State",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "enum IAuthority.State",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "enum IAuthority.Role",
+						"name": "role",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					}
+				],
+				"name": "getFunctions",
+				"outputs": [
+					{
+						"internalType": "bytes4[]",
+						"name": "",
+						"type": "bytes4[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes4",
+						"name": "sig",
+						"type": "bytes4"
+					}
+				],
+				"name": "hasFunctionPermission",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "initialize",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "acc1",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "acc2",
+						"type": "address"
+					}
+				],
+				"name": "onePlatformCheck",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "isOpen",
+						"type": "bool"
+					}
+				],
+				"name": "setSwitcherStateOfBatch",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "isOpen",
+						"type": "bool"
+					}
+				],
+				"name": "setSwitcherStateOfPlatform",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "switcherStateOfPlatform",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string[]",
+						"name": "dids",
+						"type": "string[]"
+					}
+				],
+				"name": "syncPlatformDID",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "enum IAuthority.State",
+						"name": "state",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bool",
+						"name": "changePlatformState",
+						"type": "bool"
+					}
+				],
+				"name": "updateAccountState",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newImplementation",
+						"type": "address"
+					}
+				],
+				"name": "upgradeTo",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newImplementation",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "upgradeToAndCall",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "kuan",
+			"details": "Authority contract - Logical contract",
+			"kind": "dev",
+			"methods": {
+				"accountAvailable(address)": {
+					"details": "See {IAuthority-accountAvailable}.*"
+				},
+				"addAccountByOperator(address,string,string,string)": {
+					"details": "See {IAuthority-addAccountByOperator}.*"
+				},
+				"addAccountByPlatform(address,string,string)": {
+					"details": "See {IAuthority-addAccountByPlatform}.*"
+				},
+				"addBatchAccountByOperator(address[],string[],string[],string[])": {
+					"details": "See {IAuthority-addBatchAccountByOperator}.*"
+				},
+				"addBatchAccountByPlatform(address[],string[],string[])": {
+					"details": "See {IAuthority-addBatchAccountByPlatform}.*"
+				},
+				"addFunction(uint8,address,bytes4)": {
+					"details": "Add function",
+					"params": {
+						"contractAddress": "contractAddress",
+						"role": "role",
+						"sig": "sig*"
+					}
+				},
+				"addOperator(address,string,string)": {
+					"details": "See {IAuthority-addOperator}.*"
+				},
+				"checkAvailableAndRole(address,uint8)": {
+					"details": "See {IAuthority-checkAvailableAndRole}.*"
+				},
+				"crossPlatformApproval(address,address,bool)": {
+					"details": "See {IAuthority-crossPlatformApproval}.*"
+				},
+				"crossPlatformCheck(address,address)": {
+					"details": "See {IAuthority-crossPlatformCheck}.*"
+				},
+				"delFunction(uint8,address,bytes4)": {
+					"details": "See {IAuthority-delFunction}.*"
+				},
+				"getAccount(address)": {
+					"details": "See {IAuthority-getAccount}.*"
+				},
+				"getFunctions(uint8,address)": {
+					"details": "See {IAuthority-getFunctions}.*"
+				},
+				"hasFunctionPermission(address,address,bytes4)": {
+					"details": "See {IAuthority-hasFunctionPermission}.*"
+				},
+				"onePlatformCheck(address,address)": {
+					"details": "See {IAuthority-onePlatformCheck}.*"
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+				},
+				"setSwitcherStateOfBatch(bool)": {
+					"details": "See {IAuthority-setSwitcherStateOfBatch}.*"
+				},
+				"setSwitcherStateOfPlatform(bool)": {
+					"details": "See {IAuthority-setSwitcherStateOfPlatform}.*"
+				},
+				"switcherStateOfPlatform()": {
+					"details": "See {IAuthority-switcherStateOfPlatform}.*"
+				},
+				"syncPlatformDID(string[])": {
+					"details": "See {IAuthority-syncPlatformDID}.*"
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				},
+				"updateAccountState(address,uint8,bool)": {
+					"details": "See {IAuthority-updateAccountState}.*"
+				},
+				"upgradeTo(address)": {
+					"details": "Upgrade the implementation of the proxy to `newImplementation`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event."
+				},
+				"upgradeToAndCall(address,bytes)": {
+					"details": "Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call encoded in `data`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event."
+				}
+			},
+			"title": "Authority",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/logic/Authority/Authority.sol": "Authority"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/interface/Authority/IAuthority.sol": {
+			"keccak256": "0xc288d2039e6fc0fe0ac1ed92b8c59df17cb10507d234ec426d64c0ef5d17693c",
+			"license": "BSN DDC",
+			"urls": [
+				"bzz-raw://15197f6b0936e6c5c92beed40202de9f352ea958d1b5c97dcb547ea0c4685780",
+				"dweb:/ipfs/Qmamx3e8tLwKgE196s3xa3gBeqx8sU3Grk2cG2gAq6tjvq"
+			]
+		},
+		"contracts/logic/Authority/Authority.sol": {
+			"keccak256": "0xdc0a4fdff4233558e5fa410b96c2c11f431e2578bfbfe58e2ef6ee407476ec60",
+			"license": "BSN DDC",
+			"urls": [
+				"bzz-raw://7741f6d6937f68eec0a510d6ef5be7d5f5c2ebd495837115927e5d5fa8325c00",
+				"dweb:/ipfs/QmNYgFhY8kwH4wBvM3MrXZs9pz4BmVB9QM6oryQgVpk9NA"
+			]
+		},
+		"contracts/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol": {
+			"keccak256": "0xbe9c7b9e6fd2d863506e42136a468e8de138fc6983a8aad3c09a8af138544787",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8576946168cf9a0506be940569aa93387863018314eb02483a63ee6cc8d57f30",
+				"dweb:/ipfs/QmUYq6kCR3e8JpSGz8b5qjxTV1YNUy6ZXJDWDNH4hErofE"
+			]
+		},
+		"contracts/proxy/beacon/IBeaconUpgradeable.sol": {
+			"keccak256": "0x083d323ab2581867c2369332c41dceb7d53e936f842543179f80888c09dfebe7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bcb494a4cf91a2274861f70737a3fd415778f88c50222136303a9cb42c299714",
+				"dweb:/ipfs/QmVW2tu4yptji8Uwbz2tnNbnsu8q1UaTRF5AFz76WDD3or"
+			]
+		},
+		"contracts/proxy/utils/Initializable.sol": {
+			"keccak256": "0xf2788e700c57c7bcb7979a1d3466fc1f38f4d0778a772b3dafcf56db7c5cd9d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://538c0d9285872b7849b2c721800d6c9ba20ea3fce2d5de6a89402c6289233580",
+				"dweb:/ipfs/QmPMJSvz1XwaPEAYtzxPBPDbFuqk3Wyo8N2RRzQcTubJko"
+			]
+		},
+		"contracts/proxy/utils/UUPSUpgradeable.sol": {
+			"keccak256": "0x5d1b2d7513f31b41197d06dfdb312caad0c1f685e739c6748cbe305c729afcb5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f14380c8dd4c115e6fa4acb8779756dfce9ab89405d44c4a9b054850a5342365",
+				"dweb:/ipfs/QmTkVQ9kXdSJdpcLsmQHVcc7eNquWPT4RzAD2A155SkHxk"
+			]
+		},
+		"contracts/utils/AddressUpgradeable.sol": {
+			"keccak256": "0x57abb866d0290da4e274ce9834f65674860ee3ad7424201720b01ab9fbca18a5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://68d7ae9d3ddba1db5296bb2f9a418a0007524f461c948fdce12f5ac3cf754c27",
+				"dweb:/ipfs/QmU1v4iexyzkKLF5ZytdTr2cfmmbMmSL735GSg5fjmJThZ"
+			]
+		},
+		"contracts/utils/ContextUpgradeable.sol": {
+			"keccak256": "0x38ae13433152d18439865ad0d879fad8e97fd5f72c717d12a799cd26be020ebe",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d8043ea2d32d688fd3426d48db63ec3a3cabf43deb5fb2acedfad9f4a88d376c",
+				"dweb:/ipfs/QmaWpmSaLX2stJHkxHYF2r133giDZ7RNvjSHUMmBhGVzvw"
+			]
+		},
+		"contracts/utils/OwnableUpgradeable.sol": {
+			"keccak256": "0x5f80565dbc726017487a968d5ebcf2a5d3f786879b4a816d42502ad3ddaa5a67",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4f29826e44dcc1e145d2cd48a64187f290521a37a337b7d87e456d796ff55af2",
+				"dweb:/ipfs/QmaHjeDi7RcKtjXnz43EPHLZkcYi7EaP4nmevMb52ph3jd"
+			]
+		},
+		"contracts/utils/StorageSlotUpgradeable.sol": {
+			"keccak256": "0xcd523f8a8dc10dbb4186e59aaeeeb00d8de5fb6184c47a7330126ae36587d758",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bb4b809e31d0521c0ba0960355e84d58c38fcd29631022726b628ad79485d328",
+				"dweb:/ipfs/QmYZtZDxk9nrtxAsi9TmDcCrUmTNiEJ9Bbsr1A1k8sbyVT"
+			]
+		},
+		"contracts/utils/StringsUpgradeable.sol": {
+			"keccak256": "0x7df7302df6aa6924f0327f4c199c42b8def6cb3baa41b42e09c40ae8f53825b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d2a89adc8f2a7e12b15cb9f5a94dfdd070b103115eaa5e6b133b9444ca47eb51",
+				"dweb:/ipfs/QmarkXRZHpuB2RXKRwFPXgk6oj4pDpMY3WkxbGumf7AEEM"
+			]
+		}
+	},
+	"version": 1
+}

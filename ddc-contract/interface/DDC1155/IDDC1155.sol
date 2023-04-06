@@ -137,7 +137,21 @@ interface IDDC1155 is IERC165Upgradeable {
     /**
      * @dev The owner information corresponding to the DDC is synchronized.
      */
-    event SyncDDCOwners(address indexed operator,uint256[] ddcIds,address[][] owners);
+    event SyncDDCOwners(
+        address indexed operator,
+        uint256[] ddcIds,
+        address[][] owners
+    );
+
+    /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
 
     /**
      * @dev Sets charge proxy address.
@@ -184,6 +198,25 @@ interface IDDC1155 is IERC165Upgradeable {
      * @param data Additional data with no specified format
      */
     function safeMint(
+        address to,
+        uint256 amount,
+        string memory _ddcURI,
+        bytes memory data
+    ) external;
+
+    /**
+     * @dev  Creates a new ddc for `to`.
+     *
+     * Requirements:
+     * - sender's role is crosschain only.
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * @param to Generate the recipient account address corresponding to the ddc
+     * @param amount The amount corresponding to the generated ddc
+     * @param _ddcURI URI corresponding to ddc
+     * @param data Additional data with no specified format
+     */
+    function crossSafeMint(
         address to,
         uint256 amount,
         string memory _ddcURI,
@@ -244,10 +277,10 @@ interface IDDC1155 is IERC165Upgradeable {
      *
      * @return
      */
-    function isApprovedForAll(address owner, address operator)
-        external
-        view
-        returns (bool);
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool);
 
     /**
      * @notice getNonce for metatransfer
@@ -354,10 +387,10 @@ interface IDDC1155 is IERC165Upgradeable {
      *
      * @return Returns the number of ddc owned by the owner
      */
-    function balanceOf(address owner, uint256 ddcId)
-        external
-        view
-        returns (uint256);
+    function balanceOf(
+        address owner,
+        uint256 ddcId
+    ) external view returns (uint256);
 
     /**
      * @dev Query the number of Owner used by each DDC in the DDC list
@@ -370,10 +403,10 @@ interface IDDC1155 is IERC165Upgradeable {
      *
      * @return Returns the number of ddc owned by the owners
      */
-    function balanceOfBatch(address[] memory owners, uint256[] memory ddcIds)
-        external
-        view
-        returns (uint256[] memory);
+    function balanceOfBatch(
+        address[] memory owners,
+        uint256[] memory ddcIds
+    ) external view returns (uint256[] memory);
 
     /**
      * @dev Query the URI corresponding to the DDC according to the DDCID
@@ -546,7 +579,7 @@ interface IDDC1155 is IERC165Upgradeable {
      * - ``
      * - ``
      * @param ddcId  DDC unique identifier
-     * 
+     *
      */
     function ownerOf(uint256 ddcId) external view returns (address[] memory);
 
@@ -558,7 +591,10 @@ interface IDDC1155 is IERC165Upgradeable {
      * - ``
      * @param ddcIds  DDC unique identifiers
      * @param owners  Owner account address
-     * 
+     *
      */
-    function syncDDCOwners(uint256[] memory ddcIds,address[][] memory owners)external;
+    function syncDDCOwners(
+        uint256[] memory ddcIds,
+        address[][] memory owners
+    ) external;
 }

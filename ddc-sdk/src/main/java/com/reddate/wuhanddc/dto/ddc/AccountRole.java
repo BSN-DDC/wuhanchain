@@ -4,7 +4,8 @@ public enum AccountRole {
 
 	Operator(0),
 	PlatformManager(1),
-	Consumer(2);
+	Consumer(2),
+	CrossChain(3);
 	
 	private Integer role;
 

@@ -13,6 +13,7 @@ import com.reddate.wuhanddc.exception.DDCException;
 import com.reddate.wuhanddc.net.RequestOptions;
 import com.reddate.wuhanddc.param.CrossChainTransferParams;
 import com.reddate.wuhanddc.param.UpdateCrossChainStatusParams;
+import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.web3j.tx.txdecode.EventResultEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,12 @@ public class CrossChainService extends BaseService {
     }
 
     public String crossChainTransfer(CrossChainTransferParams params, RequestOptions options) throws Exception {
+
+        //check contract address
+        if (StringUtils.isEmpty(crossChainContract.getContractAddress())) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "crossChain address");
+        }
+
         // check sender
         checkSender(params.getSender());
 
@@ -157,6 +164,12 @@ public class CrossChainService extends BaseService {
     }
 
     public String updateCrossChainStatus(UpdateCrossChainStatusParams params, RequestOptions options) throws Exception {
+
+        //check contract address
+        if (StringUtils.isEmpty(crossChainContract.getContractAddress())) {
+            throw new DDCException(ErrorMessage.IS_EMPTY, "crossChain address");
+        }
+
         // check sender
         checkSender(params.getSender());
 

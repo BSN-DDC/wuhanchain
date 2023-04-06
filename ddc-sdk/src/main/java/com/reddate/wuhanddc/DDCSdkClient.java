@@ -33,7 +33,7 @@ public class DDCSdkClient {
     public AccountService accountService;
     public CrossChainService crossChainService;
     public BaseService baseService;
-
+    public OpbCrossChainService opbCrossChainService;
     public SignEventListener signEventListener;
 
     public DDC721MetaTransaction ddc721MetaTransaction;
@@ -59,6 +59,7 @@ public class DDCSdkClient {
         String ddc721Address = builder.ddc721Address;
         String ddc1155Address = builder.ddc1155Address;
         String crossChainAddress = builder.crossChainAddress;
+        String opbCrossChainAddress = builder.opbCrossChainAddress;
         BigInteger chainId = builder.chainId;
 
         // Set contract address for event resolution
@@ -70,7 +71,7 @@ public class DDCSdkClient {
         DDCContracts.add(new DDCContract("721", ContractConfig.DDC_721_ABI, ContractConfig.DDC_721_BIN, ddc721Address));
         DDCContracts.add(new DDCContract("1155", ContractConfig.DDC_1155_ABI, ContractConfig.DDC_1155_BIN, ddc1155Address));
         DDCContracts.add(new DDCContract("crossChain", ContractConfig.DDC_CROSS_CHAIN_ABI, ContractConfig.DDC_CROSS_CHAIN_BIN, crossChainAddress));
-
+        DDCContracts.add(new DDCContract("opbCrossChain", ContractConfig.DDC_OPB_CROSS_CHAIN_ABI, ContractConfig.DDC_OPB_CROSS_CHAIN_BIN, opbCrossChainAddress));
         if (Objects.isNull(builder.signEventListener)) {
             throw new DDCException(ErrorMessage.CUSTOM_ERROR, "not register sign event listener");
         }
@@ -83,6 +84,7 @@ public class DDCSdkClient {
         accountService = new AccountService();
         crossChainService = new CrossChainService();
         baseService = new BaseService();
+        opbCrossChainService = new OpbCrossChainService();
 
         ddc1155MetaTransaction = DDC1155MetaTransaction.builder()
                 .setChainId(chainId)
@@ -107,6 +109,7 @@ public class DDCSdkClient {
         private String ddc721Address;
         private String ddc1155Address;
         private String crossChainAddress;
+        private String opbCrossChainAddress;
         private BigInteger chainId;
 
         public Builder() {
@@ -146,6 +149,11 @@ public class DDCSdkClient {
             return this;
         }
 
+        public Builder setOpbCrossChainAddress(String opbCrossChainAddress) {
+            this.opbCrossChainAddress = opbCrossChainAddress;
+            return this;
+        }
+
         public Builder setChainId(BigInteger chainId) {
             this.chainId = chainId;
             return this;
@@ -155,8 +163,8 @@ public class DDCSdkClient {
             if (Strings.isEmpty(authorityAddress) ||
                 Strings.isEmpty(chargeAddress) ||
                 Strings.isEmpty(ddc721Address) ||
-                Strings.isEmpty(ddc1155Address) ||
-                Strings.isEmpty(crossChainAddress)) {
+                Strings.isEmpty(ddc1155Address)
+                ) {
                 throw new DDCException(ErrorMessage.CUSTOM_ERROR, "contract address cannot be empty!");
             }
             if (chainId == null) {

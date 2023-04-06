@@ -15,5 +15,7 @@ public class EthFunctions {
     public static final String ETH_GET_BLOCK_BY_NUMBER = "eth_getBlockByNumber";
     public static final String ETH_BLOCK_NUMBER = "eth_blockNumber";
 
+    public static final String ETH_GET_BALANCE = "eth_getBalance";
+
 
 }

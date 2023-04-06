@@ -108,7 +108,7 @@ public class DDC721Service extends BaseService {
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
-        arrayList.add(ddcURIs.stream().collect(Collectors.joining(",")));
+        arrayList.add(ddcURIs);
 
         // send transaction
         RespJsonRpcBean respJsonRpcBean = assembleTransactionAndSend(sender, options, arrayList, DDC721Functions.MINT_BATCH, DDC721Contract);
@@ -197,7 +197,7 @@ public class DDC721Service extends BaseService {
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
-        arrayList.add(ddcURIs.stream().collect(Collectors.joining(",")));
+        arrayList.add(ddcURIs);
         arrayList.add(data);
 
         // send transaction
@@ -996,7 +996,7 @@ public class DDC721Service extends BaseService {
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
-        arrayList.add(ddcURIs.stream().collect(Collectors.joining(",")));
+        arrayList.add(ddcURIs);
         arrayList.add(nonce);
         arrayList.add(deadline);
         arrayList.add(sign);
@@ -1055,7 +1055,7 @@ public class DDC721Service extends BaseService {
         // input params
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(to);
-        arrayList.add(ddcURIs.stream().collect(Collectors.joining(",")));
+        arrayList.add(ddcURIs);
         arrayList.add(data);
         arrayList.add(nonce);
         arrayList.add(deadline);

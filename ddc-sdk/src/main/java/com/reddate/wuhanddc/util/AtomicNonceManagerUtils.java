@@ -73,6 +73,9 @@ public class AtomicNonceManagerUtils {
                 web3j.ethGetTransactionCount(
                         DDCWuhan.getNonceManagerAddress(), DefaultBlockParameterName.PENDING)
                         .send();
+        if (Objects.nonNull(ethGetTransactionCount.getError())) {
+            throw new DDCException(ErrorMessage.REQUEST_FAILED.getCode(), ethGetTransactionCount.getError().getMessage());
+        }
         // account's current nonce(pending).
         BigInteger accountNonce = ethGetTransactionCount.getTransactionCount();
         logger.info("pending nonce：" + accountNonce);

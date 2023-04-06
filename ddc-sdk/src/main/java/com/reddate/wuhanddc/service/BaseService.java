@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
@@ -75,12 +76,11 @@ public class BaseService extends RestTemplateUtil {
             throw new DDCException(ErrorMessage.IS_EMPTY, "contract info");
         }
 
-        // nonce
-//        if (Objects.isNull(nonceManagerUtils)) {
-//            // nonceManagerUtils = new AtomicNonceManagerUtils().instance(fromAddress, txPoolSleep);
-//            nonceManagerUtils = new AtomicNonceManagerUtils().instance();
-//        }
-//        BigInteger nonce = BigInteger.valueOf(nonceManagerUtils.getNonce());
+        /*// 本地nonce维护 只给链服务用
+        if (Objects.isNull(nonceManagerUtils)) {
+            nonceManagerUtils = new AtomicNonceManagerUtils().instance();
+        }
+        BigInteger nonce = BigInteger.valueOf(nonceManagerUtils.getNonce());*/
         BigInteger nonce = (Objects.nonNull(requestOptions) && requestOptions.getNonce() != null) ? requestOptions.getNonce() : getTransactionCount(sender);
         if (Objects.isNull(nonce)) {
             throw new DDCException(ErrorMessage.GET_FAILED, "nonce get");
@@ -318,6 +318,24 @@ public class BaseService extends RestTemplateUtil {
     }
 
     /**
+     * sendRawTransaction
+     *
+     * @param reqJsonRpcBean      EthRawTransaction
+     * @return
+     * @throws Exception
+     */
+    public RespJsonRpcBean sendRawTransaction(ReqJsonRpcBean reqJsonRpcBean) throws Exception {
+        logger.info("offline hash:" + Hash.sha3(reqJsonRpcBean.getParams().get(0).toString()));
+        // send transaction
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
+
+        // check result
+        resultCheck(respJsonRpcBean);
+
+        return respJsonRpcBean;
+    }
+
+    /**
      * 校验交易结果
      *
      * @param respJsonRpcBean
@@ -453,6 +471,11 @@ public class BaseService extends RestTemplateUtil {
             if ((funcInputTypes.get(i)).indexOf("[") != -1 && (funcInputTypes.get(i)).indexOf("]") != -1) {
                 List<Object> arrList = new ArrayList(Arrays.asList(params.get(i).toString().split(",", -1)));
                 List<Type> arrParams = new ArrayList();
+
+                // 兼容json，避免,分隔json属性
+                if (ArrayList.class.isInstance(params.get(i))) {
+                    arrList = (ArrayList<Object>)params.get(i);
+                }
 
                 for (int j = 0; j < arrList.size(); ++j) {
                     inputType = (Class<? extends Type>) AbiTypes.getType((funcInputTypes.get(i)).substring(0, (funcInputTypes.get(i)).indexOf("[")));
@@ -834,5 +857,25 @@ public class BaseService extends RestTemplateUtil {
                 }
             }
         }
+    }
+
+    /**
+     * The platform party or end user can query the GAS fee balance corresponding to the chain account through this method.
+     *
+     * @param account Hex format account
+     * @return GAS balance
+     */
+    public BigInteger balanceOfGas(String account) throws Exception {
+        this.checkAccount(account);
+
+        ReqJsonRpcBean reqJsonRpcBean = new ReqJsonRpcBean();
+        reqJsonRpcBean.setMethod(EthFunctions.ETH_GET_BALANCE);
+        ArrayList<Object> params = new ArrayList<>();
+        params.add(account);
+        params.add(DefaultBlockParameterName.LATEST);
+        reqJsonRpcBean.setParams(params);
+        RespJsonRpcBean respJsonRpcBean = RestTemplateUtil.sendPost(reqJsonRpcBean, RespJsonRpcBean.class, null);
+        resultCheck(respJsonRpcBean);
+        return Numeric.toBigInt(respJsonRpcBean.getResult().toString());
     }
 }

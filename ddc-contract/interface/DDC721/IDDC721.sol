@@ -96,6 +96,16 @@ interface IDDC721 is IERC165Upgradeable {
     event UnLocklist(address indexed operator, uint256 ddcId);
 
     /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
+
+    /**
      * @dev Represents the type of HashType.
      */
     enum HashType {
@@ -114,8 +124,10 @@ interface IDDC721 is IERC165Upgradeable {
      * Requirements:
      * - sender must be the owner only.
      */
-    function setNameAndSymbol(string memory name_, string memory symbol_)
-        external;
+    function setNameAndSymbol(
+        string memory name_,
+        string memory symbol_
+    ) external;
 
     /**
      * @dev Sets charge proxy address.
@@ -186,6 +198,21 @@ interface IDDC721 is IERC165Upgradeable {
     ) external;
 
     /**
+     * @dev  Creates a new ddc for `to`. If ddcId is zero, Its ddc ID will be automatically
+     *       assigned (and available on the emitted {IDDC721-Transfer} event)
+     *
+     * Requirements:
+     * - sender must have call method permission.
+     * - `to` must have the `DDC` attribute
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onDDC721Received}, which is called upon a safe transfer.
+     */
+    function crossSafeMint(
+        address to,
+        string memory _ddcURI,
+        bytes memory _data
+    ) external;
+
+    /**
      * @dev  Creates multipe new ddcs for `to`. The ddc ID will be automatically
      *       assigned (and available on the emitted {IDDC721-TransferBatch} event)
      *
@@ -225,10 +252,9 @@ interface IDDC721 is IERC165Upgradeable {
      * Requirements:
      *
      */
-    function getApproved(uint256 ddcId)
-        external
-        view
-        returns (address operator);
+    function getApproved(
+        uint256 ddcId
+    ) external view returns (address operator);
 
     /**
      * @dev Approve or remove `operator` as an operator for the caller.
@@ -247,10 +273,10 @@ interface IDDC721 is IERC165Upgradeable {
      *
      * See {setApprovalForAll}
      */
-    function isApprovedForAll(address owner, address operator)
-        external
-        view
-        returns (bool);
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool);
 
     /**
      * @notice getNonce for metatransfer
@@ -293,11 +319,7 @@ interface IDDC721 is IERC165Upgradeable {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 ddcId
-    ) external;
+    function transferFrom(address from, address to, uint256 ddcId) external;
 
     /**
      * @dev  Freezes a ddc. If the ddc has freezed, it cann't do any actions.

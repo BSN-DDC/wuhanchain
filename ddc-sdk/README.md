@@ -11,10 +11,11 @@
     - [4.BSN-DDC-721](#4bsn-ddc-721)
     - [5.BSN-DDC-1155](#5bsn-ddc-1155)
     - [6.BSN-DDC-跨链](#6bsn-ddc-跨链)
-    - [7.BSN-DDC-交易查询](#7bsn-ddc-交易查询)
-    - [8.BSN-DDC-区块查询](#8bsn-ddc-区块查询)
-    - [9.BSN-DDC-数据解析](#9bsn-ddc-数据解析)
-    - [10.离线账户创建](#10离线账户创建)
+    - [7.BSN-DDC-开放联盟链跨链](#7bsn-ddc-开放联盟链跨链)
+    - [8.BSN-DDC-交易查询](#8bsn-ddc-交易查询)
+    - [9.BSN-DDC-区块查询](#9bsn-ddc-区块查询)
+    - [10.BSN-DDC-数据解析](#10bsn-ddc-数据解析)
+    - [11.离线账户创建](#11离线账户创建)
   - [测试用例](#测试用例)
   - [配置](#配置)
     - [按请求配置](#按请求配置)
@@ -45,6 +46,7 @@
  DDC 721代理合约地址：0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2
  DDC 1155代理合约地址：0x061e59c74815994DAb4226a0D344711F18E0F418
  DDC 跨链应用代理合约地址：0xc4E12bB845D9991ee26718E881C712B2c0cB2048
+ DDC 开放联盟链跨链合约地址：0xF2FFC996D612d35F3e86DF3179906E780749845D
 ```
 
 ### 1.初始化DDCSdkClient
@@ -76,6 +78,7 @@
             .setDdc721Address("0xad3B52B4F4bd9198DC69dD9cE4aC9846667461a2")     // DDC 721代理合约地址
             .setDdc1155Address("0x061e59c74815994DAb4226a0D344711F18E0F418")    // DDC 1155代理合约地址
             .setCrossChainAddress("0xc4E12bB845D9991ee26718E881C712B2c0cB2048") // 跨链应用代理合约地址
+    		.setOpbCrossChainAddress("0xF2FFC996D612d35F3e86DF3179906E780749845D") // DDC 开放联盟链跨链合约地址
             .setChainId(BigInteger.valueOf(5555))
             .build();
 
@@ -531,7 +534,34 @@
 
 ```
 
-### 7.BSN-DDC-交易查询
+### 7.BSN-DDC-开放联盟链跨链
+
+```java
+    // 构造跨链转移方法参数对象
+    OpbCrossChainTransferParams params = OpbCrossChainTransferParams.builder()
+            // 武汉链签名账户地址
+            .setSender(sender) 
+            // 目标链接收者账户地址
+            .setTo("0x950D9693381B62791787F0E772C24DEA93FD612D")    
+            // 是否锁定
+            .setIsLock(true)     
+            // DDC唯一标识
+            .setDdcId(BigInteger.valueOf(138))  
+            // 附加数据
+            .setData("0x".getBytes(StandardCharsets.UTF_8))   
+            // DDC类型
+            .setDDCType(DDCTypeEnum.ERC721)       
+            // 目标链chainId
+            .setToChainID(BigInteger.valueOf(2))                     
+            .build();
+
+    // 调用跨链方法发起跨链交易，返回交易hash
+    String txHash = ddcSdkClient.opbCrossChainService.crossChainTransfer(params);
+```
+
+
+
+### 8.BSN-DDC-交易查询
 
 ```java
     BaseService baseService = new BaseService();
@@ -558,7 +588,7 @@
 	
 ```
 
-### 8.BSN-DDC-区块查询
+### 9.BSN-DDC-区块查询
 
 ```java
     BaseService baseService = new BaseService();
@@ -568,7 +598,7 @@
     
 ```
 
-### 9.BSN-DDC-数据解析
+### 10.BSN-DDC-数据解析
 
 ```
 3.1.9	BSN-DDC-数据解析
@@ -647,7 +677,7 @@
         
 ```
 
-### 10.离线账户创建
+### 11.离线账户创建
 
 ```java
     // 创建Hex格式账户
@@ -675,6 +705,8 @@ DDC1155服务单元测试 - [DDC1155ServiceTest.java](src/test/java/service/DDC1
 账户服务单元测试 - [AccountTest.java](src/test/java/service/AccountTest.java)
 
 跨链服务单元测试 - [CrossChainServiceTest.java](src/test/java/service/CrossChainServiceTest.java)
+
+开放联盟链跨链服务单元测试 - [OpbCrossChainServiceTest.java](src/test/java/service/OpbCrossChainServiceTest.java)
 
 ## 配置
 

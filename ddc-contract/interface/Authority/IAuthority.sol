@@ -40,7 +40,8 @@ interface IAuthority {
     enum Role {
         Operator,
         PlatformManager,
-        Consumer
+        Consumer,
+        CrossChain
     }
 
     // @dev Freeze:Frozen state, unable to perform DDC related operations; Active: Active state, DDC related operations can be performed.
@@ -89,7 +90,7 @@ interface IAuthority {
     event SetSwitcherStateOfPlatform(address indexed operator, bool isOpen);
 
     // @dev The operator adds the account switch method notification event in batches.
-    event SetSwitcherStateOfBatch(address indexed operator,bool isOpen);
+    event SetSwitcherStateOfBatch(address indexed operator, bool isOpen);
 
     // @dev Synchronize notification events for DID methods.
     event SyncPlatformDID(address indexed operator, string[] dids);
@@ -102,6 +103,18 @@ interface IAuthority {
      **/
     function addOperator(
         address operator,
+        string memory accountName,
+        string memory accountDID
+    ) external;
+
+    /**
+     * @dev Add cross chain account information
+     * @param crossChain crossChain
+     * @param accountName accountName
+     * @param accountDID accountDID
+     **/
+    function addCrossChain(
+        address crossChain,
         string memory accountName,
         string memory accountDID
     ) external;
@@ -233,7 +246,9 @@ interface IAuthority {
      * @dev Get account's info
      * @param account account
      **/
-    function getAccount(address account)
+    function getAccount(
+        address account
+    )
         external
         view
         returns (
@@ -265,20 +280,20 @@ interface IAuthority {
      * - The account's operatorState is active
      * - The account's role is the require role
      **/
-    function checkAvailableAndRole(address account, Role role)
-        external
-        view
-        returns (bool);
+    function checkAvailableAndRole(
+        address account,
+        Role role
+    ) external view returns (bool);
 
     /**
      * @dev Get functions
      * @param role role
      * @param contractAddress contractAddress
      **/
-    function getFunctions(Role role, address contractAddress)
-        external
-        view
-        returns (bytes4[] memory);
+    function getFunctions(
+        Role role,
+        address contractAddress
+    ) external view returns (bytes4[] memory);
 
     /**
      * @dev Check whether the account is available
@@ -312,10 +327,10 @@ interface IAuthority {
      *        - Check if the leaderDID of `acc1` is the same as the leaderDID of `acc2`
      * - 3. returns false
      **/
-    function onePlatformCheck(address acc1, address acc2)
-        external
-        view
-        returns (bool);
+    function onePlatformCheck(
+        address acc1,
+        address acc2
+    ) external view returns (bool);
 
     /**
      * @dev cross-platform authorization check, check whether `from` can be transferred to `to`
@@ -334,10 +349,10 @@ interface IAuthority {
      *         - Check if their leaderDID matches the authorization
      * - 3. returns false
      **/
-    function crossPlatformCheck(address from, address to)
-        external
-        view
-        returns (bool);
+    function crossPlatformCheck(
+        address from,
+        address to
+    ) external view returns (bool);
 
     /**
      * @dev Get the state of platform-side switcher
