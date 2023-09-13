@@ -360,14 +360,14 @@
     // from     拥有者账户地址
     // to       接收者账户地址
     // ddcURI   DDC资源标识符
-    // nonce    接收者nonce值
+    // nonce    拥有者nonce值
     // deadline 元交易有效期
     // sig      元交易签名信息
     String from = "0x81072375a506581CADBd90734Bd00A20CdDbE48b";
     String to = "0x81072375a506581CADBd90734Bd00A20CdDbE48b";
     BigInteger ddcId = BigInteger.valueOf(8525);
     BigInteger deadline = BigInteger.valueOf(1671096761);
-    BigInteger nonce = ddcSdkClient.ddc721Service.getNonce(to).add(BigInteger.ONE);
+    BigInteger nonce = ddcSdkClient.ddc721Service.getNonce(from).add(BigInteger.ONE);
 
     String digest = ddcSdkClient.ddc721MetaTransaction.getTransferFromDigest(from, to, ddcId, nonce, deadline);
     byte[] sign = ddcSdkClient.ddc721MetaTransaction.generateSignature(originPrivateKey, digest);
@@ -380,7 +380,7 @@
     // to       接收者账户地址
     // ddcURI   DDC资源标识符
     // data     附加数据
-    // nonce    接收者nonce值
+    // nonce    拥有者nonce值
     // deadline 元交易有效期
     // sig      元交易签名信息
     String from = "0x81072375a506581CADBd90734Bd00A20CdDbE48b";
@@ -388,7 +388,7 @@
     BigInteger ddcId = BigInteger.valueOf(8525);
     byte[] data = Numeric.hexStringToByteArray("0x16");
     BigInteger deadline = BigInteger.valueOf(1671096761);
-    BigInteger nonce = ddcSdkClient.ddc721Service.getNonce(to).add(BigInteger.ONE);
+    BigInteger nonce = ddcSdkClient.ddc721Service.getNonce(from).add(BigInteger.ONE);
 
     String digest = ddcSdkClient.ddc721MetaTransaction.getSafeTransferFromDigest(from, to, ddcId, data, nonce, deadline);
     byte[] sign = ddcSdkClient.ddc721MetaTransaction.generateSignature(originPrivateKey, digest);
@@ -397,7 +397,7 @@
     
     // 元交易销毁
     // ddcId    DDC唯一标识符
-    // nonce    接收者nonce值
+    // nonce    拥有者nonce值
     // deadline 元交易有效期
     // sig      元交易签名信息
     String from = "0x81072375a506581CADBd90734Bd00A20CdDbE48b";
